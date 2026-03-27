@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>BudżetApp</title>
+
+  <!-- PWA -->
+  <meta name="theme-color" content="#6C63FF" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BudżetApp" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/login.css" />
+  <link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+<!-- ============================================================
+     LOGIN SCREEN
+     ============================================================ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">💰</div>
+      <div class="login-logo-text">BudżetApp</div>
+    </div>
+
+    <h1 class="login-title">Zaloguj się</h1>
+    <p class="login-subtitle">Twoje finanse są chronione hasłem.</p>
+
+    <div class="login-form" id="login-form">
+      <div class="input-group">
+        <label for="login-pw">Hasło</label>
+        <div class="input-password-wrap">
+          <input type="password" id="login-pw" placeholder="Wpisz hasło..." autocomplete="current-password" />
+          <button class="toggle-pw" id="toggle-login-pw" type="button" title="Pokaż/ukryj hasło">👁</button>
+        </div>
+      </div>
+
+      <div id="login-error" class="login-error hidden"></div>
+
+      <button class="btn-primary login-submit" id="login-btn">Zaloguj →</button>
+    </div>
+
+    <div class="login-hint">
+      Domyślne hasło: <strong>budzetapp2024</strong><br>
+      Zmień je po pierwszym logowaniu w ustawieniach.
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     APP SCREEN
+     ============================================================ -->
+<div id="app-screen" class="hidden">
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="app-header-inner">
+      <div class="app-logo">
+        <div class="app-logo-icon">💰</div>
+        <span class="app-logo-name">BudżetApp</span>
+      </div>
+
+      <nav class="app-nav">
+        <button class="nav-btn active" data-view="dashboard">
+          <span class="nav-icon">📊</span><span>Przegląd</span>
+        </button>
+        <button class="nav-btn" data-view="transactions">
+          <span class="nav-icon">💳</span><span>Transakcje</span>
+        </button>
+        <button class="nav-btn" data-view="budgets">
+          <span class="nav-icon">🎯</span><span>Limity</span>
+        </button>
+      </nav>
+
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-ghost" id="change-pw-btn" style="font-size:12px;padding:6px 12px">🔑 Hasło</button>
+        <button class="btn-logout" id="logout-btn">↩ Wyloguj</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="app-main">
+
+    <!-- Month bar (always visible) -->
+    <div class="month-bar">
+      <div class="month-nav">
+        <button class="month-nav-btn" id="prev-month">‹</button>
+        <span class="month-label" id="month-label">Mar 2026</span>
+        <button class="month-nav-btn" id="next-month">›</button>
+      </div>
+      <span class="month-count" id="month-count">0 transakcji</span>
+    </div>
+
+    <!-- Summary cards (always visible) -->
+    <div class="summary-grid">
+      <div class="summary-card green-card">
+        <div class="summary-label">↑ Przychód</div>
+        <div id="income-display">
+          <div id="sum-income-val" class="summary-value green mono">0,00 zł</div>
+          <button class="summary-edit-btn" id="income-edit-btn">edytuj</button>
+        </div>
+        <div id="income-edit-form" class="hidden">
+          <div class="summary-inline-form">
+            <input type="number" min="0" step="0.01" id="income-edit-input" placeholder="0.00" />
+            <button class="btn-primary" id="income-save-btn">OK</button>
+            <button class="btn-ghost" id="income-cancel-btn" style="padding:7px 10px">✕</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card red-card">
+        <div class="summary-label">↓ Wydatki</div>
+        <div id="sum-expenses-val" class="summary-value red mono">0,00 zł</div>
+      </div>
+
+      <div class="summary-card neutral-card" id="sum-balance-card">
+        <div class="summary-label">= Saldo</div>
+        <div id="sum-balance-val" class="summary-value mono">0,00 zł</div>
+      </div>
+    </div>
+
+    <!-- ---- DASHBOARD VIEW ---- -->
+    <div id="view-dashboard">
+      <div class="card p-24">
+        <div class="section-header">
+          <h2 class="section-title">Według kategorii</h2>
+        </div>
+        <div class="cat-grid" id="cat-grid"></div>
+      </div>
+
+      <div class="card p-24 mt-16">
+        <div class="section-header">
+          <h2 class="section-title">Dodaj transakcję</h2>
+        </div>
+        <!-- Add form (shared markup, initialized by JS) -->
+        <div class="add-form" id="add-form-dashboard">
+          <div class="input-group">
+            <label class="label">Typ</label>
+            <div class="type-toggle">
+              <button class="type-btn active-expense" id="type-expense">💸 Wydatek</button>
+              <button class="type-btn" id="type-income">💵 Przychód</button>
+            </div>
+          </div>
+          <div class="form-row-2">
+            <div class="input-group">
+              <label class="label" for="form-category">Kategoria</label>
+              <select id="form-category"></select>
+            </div>
+            <div class="input-group">
+              <label class="label" for="form-date">Data</label>
+              <input type="date" id="form-date" />
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="label" for="form-desc">Opis</label>
+            <input type="text" id="form-desc" placeholder="np. Zakupy w Biedronce..." />
+          </div>
+          <div class="input-group">
+            <label class="label" for="form-amount">Kwota (zł)</label>
+            <input type="number" id="form-amount" min="0" step="0.01" placeholder="0.00" />
+          </div>
+          <button class="btn-primary" id="add-btn" style="align-self:flex-start;padding:12px 28px">+ Dodaj</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- TRANSACTIONS VIEW ---- -->
+    <div id="view-transactions" class="hidden">
+      <div class="card p-24">
+        <div class="flex-between mb-16">
+          <h2 class="section-title">Historia transakcji</h2>
+          <select id="tx-filter" class="filter-select"></select>
+        </div>
+        <div class="tx-list" id="tx-list"></div>
+      </div>
+    </div>
+
+    <!-- ---- BUDGETS VIEW ---- -->
+    <div id="view-budgets" class="hidden">
+      <p class="section-desc">Ustaw miesięczne limity wydatków — aplikacja poinformuje Cię gdy je przekroczysz.</p>
+      <div class="budget-list" id="budget-list"></div>
+    </div>
+
+  </main>
+</div>
+
+
+<!-- ============================================================
+     CHANGE PASSWORD MODAL
+     ============================================================ -->
+<div id="change-pw-modal" class="hidden" style="
+  position:fixed; inset:0; z-index:500;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(0,0,0,0.7); backdrop-filter:blur(8px); padding:24px;
+">
+  <div class="card p-24" style="width:100%;max-width:380px;animation:loginAppear .3s ease both">
+    <h2 style="font-family:var(--font-display);font-size:20px;font-weight:800;margin-bottom:20px">🔑 Zmień hasło</h2>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="input-group">
+        <label class="label">Obecne hasło</label>
+        <input type="password" id="cpw-old" placeholder="Obecne hasło" />
+      </div>
+      <div class="input-group">
+        <label class="label">Nowe hasło</label>
+        <input type="password" id="cpw-new" placeholder="Min. 6 znaków" />
+      </div>
+      <div class="input-group">
+        <label class="label">Powtórz nowe hasło</label>
+        <input type="password" id="cpw-new2" placeholder="Powtórz hasło" />
+      </div>
+      <p id="cpw-error" class="login-error hidden" style="margin:0"></p>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="btn-primary" id="cpw-submit" style="flex:1">Zapisz hasło</button>
+        <button class="btn-ghost" id="cpw-cancel" style="flex:1">Anuluj</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Toast -->
+<div id="toast"></div>
+
+
+<!-- Scripts -->
+<script src="js/auth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+<script>
+  // Bootstrap
+  (async () => {
+    // Toggle password visibility
+    document.getElementById("toggle-login-pw").onclick = () => {
+      const inp = document.getElementById("login-pw");
+      inp.type = inp.type === "password" ? "text" : "password";
+    };
+
+    // Login
+    const doLogin = async () => {
+      const pw  = document.getElementById("login-pw").value;
+      const err = document.getElementById("login-error");
+      if (!pw) { err.textContent = "Wpisz hasło."; err.classList.remove("hidden"); return; }
+      const ok = await Auth.login(pw);
+      if (ok) {
+        document.getElementById("login-screen").classList.add("hidden");
+        document.getElementById("app-screen").classList.remove("hidden");
+        App.init();
+        App.initChangePwModal();
+      } else {
+        err.textContent = "Nieprawidłowe hasło. Spróbuj ponownie.";
+        err.classList.remove("hidden");
+        document.getElementById("login-pw").value = "";
+        document.getElementById("login-pw").focus();
+      }
+    };
+
+    document.getElementById("login-btn").onclick = doLogin;
+    document.getElementById("login-pw").onkeydown = e => { if (e.key === "Enter") doLogin(); };
+
+    // Auto-login if valid session
+    if (Auth.isLoggedIn()) {
+      document.getElementById("login-screen").classList.add("hidden");
+      document.getElementById("app-screen").classList.remove("hidden");
+      App.init();
+      App.initChangePwModal();
+    }
+  })();
+</script>
+
+</body>
+</html>
