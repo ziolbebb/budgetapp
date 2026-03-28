@@ -114,32 +114,26 @@
         <div class="cat-grid" id="cat-grid"></div>
       </div>
 
-      <!-- ADD FORM -->
       <div class="card p-24">
         <div class="section-header">
           <h2 class="section-title">Dodaj wpis</h2>
         </div>
         <div class="add-form">
 
-          <!-- Type: actual | income -->
+          <!-- Type: planned | actual | income -->
           <div class="input-group">
             <label class="label">Typ wpisu</label>
             <div class="type-toggle">
-              <button class="type-btn a-real" data-subtype="actual">💸 Wydatek</button>
+              <button class="type-btn a-plan" data-subtype="planned">📋 Zaplanowany</button>
+              <button class="type-btn" data-subtype="actual">💸 Rzeczywisty</button>
               <button class="type-btn" data-subtype="income">💵 Przychód</button>
             </div>
           </div>
 
-          <!-- Category + date (for actual expense) -->
-          <div id="category-row" class="form-row-2">
-            <div class="input-group">
-              <label class="label">Kategoria</label>
-              <select id="form-category"></select>
-            </div>
-            <div class="input-group">
-              <label class="label">Data</label>
-              <input type="date" id="form-date" />
-            </div>
+          <!-- Category (for expense/planned) -->
+          <div id="category-row" class="input-group">
+            <label class="label">Kategoria</label>
+            <select id="form-category"></select>
           </div>
 
           <!-- Income source (hidden by default) -->
@@ -187,13 +181,12 @@
         <div class="tx-list" id="tx-list"></div>
       </div>
 
-      <!-- Planned (per-category budgets) -->
-      <div id="tx-planned-section" class="hidden">
-        <p class="section-desc" style="margin-bottom:16px">
-          Ustaw ile chcesz przeznaczyć na każdą kategorię w tym okresie.
-          Możesz wpisać 0 żeby usunąć plan dla danej kategorii.
+      <!-- Planned transactions list -->
+      <div id="tx-planned-section" class="hidden card p-24">
+        <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px">
+          Zaplanowane wydatki na ten okres — bez konkretnych dat, tylko przypisane do kategorii i okresu rozliczeniowego.
         </p>
-        <div id="planned-list"></div>
+        <div class="tx-list" id="planned-tx-list"></div>
       </div>
 
       <!-- Income list -->

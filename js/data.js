@@ -52,14 +52,15 @@ const Data = (() => {
 
   function getActual() { return load(KEYS.actual, []); }
 
-  function addActual({ desc, amount, category, date, periodKey }) {
+  function addActual({ desc, amount, category, subtype, date, periodKey }) {
     const list = getActual();
     const t = {
       id: Date.now(),
       desc: desc.trim(),
       amount: Math.abs(parseFloat(amount)),
       category,
-      date,
+      subtype: subtype || "actual",   // "planned" | "actual"
+      date: date || null,
       periodKey,
     };
     list.unshift(t);
@@ -107,14 +108,18 @@ const Data = (() => {
   // ============================================================
 
   function getPeriodSummary(periodKey) {
-    const actual  = getPeriodActual(periodKey);
-    const planned = getPlanned(periodKey);
-    const plannedTotal = Object.values(planned).reduce((s, v) => s + v, 0);
-    const actualTotal  = actual.reduce((s, t) => s + t.amount, 0);
-    const income       = getTotalIncome(periodKey);
+    const all         = getPeriodActual(periodKey);
+    const planned     = getPlanned(periodKey);
+    const plannedTxs  = all.filter(t => t.subtype === "planned");
+    const actualTxs   = all.filter(t => t.subtype !== "planned");
+    const plannedFromTx = plannedTxs.reduce((s, t) => s + t.amount, 0);
+    const plannedTotal  = Object.values(planned).reduce((s, v) => s + v, 0) + plannedFromTx;
+    const actualTotal   = actualTxs.reduce((s, t) => s + t.amount, 0);
+    const income        = getTotalIncome(periodKey);
     return {
-      actual,
+      actual: actualTxs,
       planned,
+      plannedTxs,
       plannedTotal,
       actualTotal,
       income,

@@ -68,14 +68,16 @@ const App = (() => {
 
   function renderDashboard() {
     renderSummaryCards();
-    const { actual, planned } = Data.getPeriodSummary(pk());
+    const { actual, plannedTxs, planned } = Data.getPeriodSummary(pk());
     const catGrid = UI.el("cat-grid");
     catGrid.innerHTML = "";
 
+    // Merge: per-category planned budget + planned transactions
     const activeCategories = UI.CATEGORIES.filter(cat => {
-      const p = planned[cat.id] || 0;
-      const a = actual.filter(t => t.category === cat.id).reduce((s, t) => s + t.amount, 0);
-      return p > 0 || a > 0;
+      const pBudget = planned[cat.id] || 0;
+      const pTx     = plannedTxs.filter(t => t.category === cat.id).reduce((s, t) => s + t.amount, 0);
+      const a       = actual.filter(t => t.category === cat.id).reduce((s, t) => s + t.amount, 0);
+      return pBudget > 0 || pTx > 0 || a > 0;
     });
 
     if (activeCategories.length === 0) {
@@ -84,7 +86,9 @@ const App = (() => {
     }
 
     for (const cat of activeCategories) {
-      const plannedAmt = planned[cat.id] || 0;
+      const pBudget   = planned[cat.id] || 0;
+      const pTx       = plannedTxs.filter(t => t.category === cat.id).reduce((s, t) => s + t.amount, 0);
+      const plannedAmt = pBudget + pTx;
       const actualAmt  = actual.filter(t => t.category === cat.id).reduce((s, t) => s + t.amount, 0);
       const pct  = plannedAmt > 0 ? Math.min((actualAmt / plannedAmt) * 100, 100) : 0;
       const over = plannedAmt > 0 && actualAmt > plannedAmt;
@@ -116,27 +120,29 @@ const App = (() => {
     state.deleteConfirm = null;
     state.deleteIncomeConfirm = null;
     document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
-    UI.el("tx-expense-section").classList.toggle("hidden", tab === "income" || tab === "planned");
-    UI.el("tx-income-section").classList.toggle("hidden", tab !== "income");
-    UI.el("tx-planned-section").classList.toggle("hidden", tab !== "planned");
+
+    UI.el("tx-expense-section").classList.toggle("hidden",  tab !== "actual");
+    UI.el("tx-income-section").classList.toggle("hidden",   tab !== "income");
+    UI.el("tx-planned-section").classList.toggle("hidden",  tab !== "planned");
+
     const filterRow = UI.el("tx-filter-row");
     if (filterRow) filterRow.style.display = tab === "actual" ? "" : "none";
 
     if (tab === "income")  renderIncomeList();
     if (tab === "actual")  renderActualList(UI.el("tx-filter")?.value || "all");
-    if (tab === "planned") renderPlannedList();
+    if (tab === "planned") renderPlannedTxList();
   }
 
   function renderActualList(filterCat = "all") {
     const { actual } = Data.getPeriodSummary(pk());
     let list = filterCat === "all" ? actual : actual.filter(t => t.category === filterCat);
-    list = [...list].sort((a, b) => b.date.localeCompare(a.date));
+    list = [...list].sort((a, b) => (b.id || 0) - (a.id || 0));
 
     const el = UI.el("tx-list");
     el.innerHTML = "";
 
     if (list.length === 0) {
-      el.innerHTML = `<div class="tx-empty">Brak wydatków${filterCat !== "all" ? " w tej kategorii" : ""}.</div>`;
+      el.innerHTML = `<div class="tx-empty">Brak rzeczywistych wydatków${filterCat !== "all" ? " w tej kategorii" : ""}.</div>`;
       return;
     }
 
@@ -149,7 +155,7 @@ const App = (() => {
         <div class="tx-icon" style="background:${cat.color}22">${cat.icon}</div>
         <div class="tx-info">
           <div class="tx-desc truncate">${t.desc}</div>
-          <div class="tx-meta">${cat.label} · ${t.date}</div>
+          <div class="tx-meta">${cat.label} · ${period().label}</div>
         </div>
         <div class="tx-amt red">−${UI.formatPLN(t.amount)}</div>
         <div class="tx-del-area" id="da-${t.id}"></div>`;
@@ -167,6 +173,51 @@ const App = (() => {
         const btn = document.createElement("button");
         btn.className = "btn-del"; btn.textContent = "✕";
         btn.onclick = () => { state.deleteConfirm = t.id; renderActualList(UI.el("tx-filter")?.value||"all"); };
+        da.appendChild(btn);
+      }
+      el.appendChild(row);
+    }
+  }
+
+  function renderPlannedTxList() {
+    const { plannedTxs } = Data.getPeriodSummary(pk());
+    const sorted = [...plannedTxs].sort((a, b) => (b.id || 0) - (a.id || 0));
+    const el = UI.el("planned-tx-list");
+    if (!el) return;
+    el.innerHTML = "";
+
+    if (sorted.length === 0) {
+      el.innerHTML = `<div class="tx-empty">Brak zaplanowanych wydatków w tym okresie.</div>`;
+      return;
+    }
+
+    for (const t of sorted) {
+      const cat = UI.getCategory(t.category);
+      const isConfirm = state.deleteConfirm === t.id;
+      const row = document.createElement("div");
+      row.className = "tx-row";
+      row.innerHTML = `
+        <div class="tx-icon" style="background:${cat.color}22">${cat.icon}</div>
+        <div class="tx-info">
+          <div class="tx-desc truncate">${t.desc}</div>
+          <div class="tx-meta">${cat.label} · <span class="badge-mini plan">plan</span></div>
+        </div>
+        <div class="tx-amt" style="color:var(--accent2)">−${UI.formatPLN(t.amount)}</div>
+        <div class="tx-del-area" id="dp-${t.id}"></div>`;
+
+      const da = row.querySelector(`#dp-${t.id}`);
+      if (isConfirm) {
+        da.innerHTML = `<button class="btn-danger" id="cpd-${t.id}">Usuń</button><button class="btn-g" id="cpa-${t.id}" style="padding:5px 10px;font-size:12px">Anuluj</button>`;
+        setTimeout(() => {
+          const cpd = document.getElementById(`cpd-${t.id}`);
+          const cpa = document.getElementById(`cpa-${t.id}`);
+          if (cpd) cpd.onclick = () => { Data.deleteActual(t.id); state.deleteConfirm = null; renderMain(); UI.toast("Usunięto", "err"); };
+          if (cpa) cpa.onclick = () => { state.deleteConfirm = null; renderPlannedTxList(); };
+        }, 0);
+      } else {
+        const btn = document.createElement("button");
+        btn.className = "btn-del"; btn.textContent = "✕";
+        btn.onclick = () => { state.deleteConfirm = t.id; renderPlannedTxList(); };
         da.appendChild(btn);
       }
       el.appendChild(row);
@@ -295,15 +346,18 @@ const App = (() => {
   // ============================================================
 
   function initAddForm() {
-    // Type toggle: actual | income
+    // Type toggle: planned | actual | income
     document.querySelectorAll(".type-btn").forEach(btn => {
       btn.onclick = () => {
         const t = btn.dataset.subtype;
         document.querySelectorAll(".type-btn").forEach(b => {
           b.classList.remove("a-plan", "a-real", "a-inc");
         });
-        btn.classList.add(t === "income" ? "a-inc" : "a-real");
+        if (t === "planned") btn.classList.add("a-plan");
+        else if (t === "income") btn.classList.add("a-inc");
+        else btn.classList.add("a-real");
 
+        // income shows source selector, hides category+desc
         UI.el("income-source-row").classList.toggle("hidden", t !== "income");
         UI.el("category-row").classList.toggle("hidden", t === "income");
         UI.el("desc-row").classList.toggle("hidden", t === "income");
@@ -314,30 +368,13 @@ const App = (() => {
     UI.buildCategoryOptions(UI.el("form-category"), "paliwo", UI.CATEGORIES);
     UI.buildCategoryOptions(UI.el("form-income-source"), "dominos", UI.INCOME_CATEGORIES);
 
-    // Set date constraints to current period
-    updateFormDate();
-
     UI.el("add-btn").onclick = submitForm;
     UI.el("form-amount").onkeydown = e => { if (e.key === "Enter") submitForm(); };
     UI.el("form-desc").onkeydown   = e => { if (e.key === "Enter") submitForm(); };
   }
 
-  function updateFormDate() {
-    const p = period();
-    const today = UI.todayISO();
-    const dateInput = UI.el("form-date");
-    dateInput.min = p.startDate;
-    dateInput.max = p.endDate;
-    // Set to today if within period, otherwise period start
-    if (today >= p.startDate && today <= p.endDate) {
-      dateInput.value = today;
-    } else {
-      dateInput.value = p.startDate;
-    }
-  }
-
   function getActiveSubtype() {
-    const btn = document.querySelector(".type-btn.a-real, .type-btn.a-inc");
+    const btn = document.querySelector(".type-btn.a-plan, .type-btn.a-real, .type-btn.a-inc");
     return btn ? btn.dataset.subtype : "actual";
   }
 
@@ -359,16 +396,15 @@ const App = (() => {
       return;
     }
 
-    // actual expense
+    // planned or actual expense — NO date, just period
     const desc = UI.el("form-desc").value.trim();
     const cat  = UI.el("form-category").value;
-    const date = UI.el("form-date").value;
     if (!desc) { UI.toast("Wpisz opis!", "err"); return; }
 
-    Data.addActual({ desc, amount, category: cat, date, periodKey: pk() });
+    Data.addActual({ desc, amount, category: cat, subtype, periodKey: pk() });
     UI.el("form-desc").value   = "";
     UI.el("form-amount").value = "";
-    UI.toast("Dodano wydatek ✓");
+    UI.toast(subtype === "planned" ? "Dodano do planu ✓" : "Dodano wydatek ✓");
     renderMain();
   }
 
@@ -380,7 +416,6 @@ const App = (() => {
     renderPeriodBar();
     renderSummaryCards();
     // Update date constraints when period changes
-    updateFormDate();
 
     ["view-dashboard", "view-transactions"].forEach(id => UI.el(id)?.classList.add("hidden"));
     UI.el(`view-${state.view}`)?.classList.remove("hidden");
