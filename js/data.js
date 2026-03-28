@@ -1,16 +1,17 @@
 /* ============================================
    BUDŻETAPP — js/data.js
-   Data layer: transactions, budgets, income
-   Period: 10th → 9th of next month
-   Types: "planned" (zaplanowane) | "actual" (rzeczywiste) | "income"
+   Data layer
+   - "planned" = budget per category (no date, just amount per period)
+   - "actual"  = real expense with date
+   - income    = list of {source, amount} per period
    ============================================ */
 
 const Data = (() => {
 
   const KEYS = {
-    transactions: "bp_transactions",
-    budgets:      "bp_budgets",
-    income:       "bp_income_v2",  // keyed by periodKey, array of {source,amount}
+    planned:      "bp_planned_v2",   // { periodKey: { catId: amount } }
+    actual:       "bp_actual_v2",    // [ {id, desc, amount, category, date, periodKey} ]
+    income:       "bp_income_v2",    // { periodKey: [ {id, source, amount} ] }
   };
 
   function load(key, fallback) {
@@ -20,57 +21,62 @@ const Data = (() => {
   function save(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
 
   // ============================================================
-  // Transactions
-  // Each transaction has:
-  //   id, desc, amount, category, subtype ("planned"|"actual"|"income"),
-  //   incomeSource (if income), date, periodKey
+  // PLANNED — per category budget (like a limit you set for the period)
   // ============================================================
 
-  function getTransactions() { return load(KEYS.transactions, []); }
+  function getPlanned(periodKey) {
+    const all = load(KEYS.planned, {});
+    return all[periodKey] || {};
+  }
 
-  function addTransaction({ desc, amount, category, subtype, incomeSource, date, periodKey }) {
-    const txs = getTransactions();
+  function setPlanned(periodKey, catId, amount) {
+    const all = load(KEYS.planned, {});
+    if (!all[periodKey]) all[periodKey] = {};
+    const val = parseFloat(amount);
+    if (val > 0) all[periodKey][catId] = val;
+    else delete all[periodKey][catId];
+    save(KEYS.planned, all);
+  }
+
+  function getPlannedAmount(periodKey, catId) {
+    return getPlanned(periodKey)[catId] || 0;
+  }
+
+  function getPlannedTotal(periodKey) {
+    return Object.values(getPlanned(periodKey)).reduce((s, v) => s + v, 0);
+  }
+
+  // ============================================================
+  // ACTUAL — real expenses with date
+  // ============================================================
+
+  function getActual() { return load(KEYS.actual, []); }
+
+  function addActual({ desc, amount, category, date, periodKey }) {
+    const list = getActual();
     const t = {
       id: Date.now(),
       desc: desc.trim(),
       amount: Math.abs(parseFloat(amount)),
       category,
-      subtype,           // "planned" | "actual" | "income"
-      incomeSource: incomeSource || null,
       date,
       periodKey,
     };
-    txs.unshift(t);
-    save(KEYS.transactions, txs);
+    list.unshift(t);
+    save(KEYS.actual, list);
     return t;
   }
 
-  function deleteTransaction(id) {
-    save(KEYS.transactions, getTransactions().filter(t => t.id !== id));
+  function deleteActual(id) {
+    save(KEYS.actual, getActual().filter(t => t.id !== id));
   }
 
-  function getPeriodTransactions(periodKey) {
-    return getTransactions().filter(t => t.periodKey === periodKey);
-  }
-
-  // ============================================================
-  // Budgets (planned limits per category per period)
-  // ============================================================
-
-  function getBudgets() { return load(KEYS.budgets, {}); }
-
-  function setBudget(periodKey, catId, amount) {
-    const b = getBudgets();
-    b[`${periodKey}_${catId}`] = parseFloat(amount);
-    save(KEYS.budgets, b);
-  }
-
-  function getBudget(periodKey, catId) {
-    return getBudgets()[`${periodKey}_${catId}`] || 0;
+  function getPeriodActual(periodKey) {
+    return getActual().filter(t => t.periodKey === periodKey);
   }
 
   // ============================================================
-  // Income (list of {id, source, amount} per period)
+  // INCOME
   // ============================================================
 
   function getIncomeEntries(periodKey) {
@@ -97,23 +103,28 @@ const Data = (() => {
   }
 
   // ============================================================
-  // Summary
+  // SUMMARY
   // ============================================================
 
   function getPeriodSummary(periodKey) {
-    const txs      = getPeriodTransactions(periodKey);
-    const planned  = txs.filter(t => t.subtype === "planned").reduce((s,t)=>s+t.amount, 0);
-    const actual   = txs.filter(t => t.subtype === "actual").reduce((s,t)=>s+t.amount, 0);
-    const income   = getTotalIncome(periodKey);
-    return { txs, planned, actual, income, balance: income - actual };
+    const actual  = getPeriodActual(periodKey);
+    const planned = getPlanned(periodKey);
+    const plannedTotal = Object.values(planned).reduce((s, v) => s + v, 0);
+    const actualTotal  = actual.reduce((s, t) => s + t.amount, 0);
+    const income       = getTotalIncome(periodKey);
+    return {
+      actual,
+      planned,
+      plannedTotal,
+      actualTotal,
+      income,
+      balance: income - actualTotal,
+    };
   }
 
   return {
-    getTransactions,
-    addTransaction,
-    deleteTransaction,
-    getPeriodTransactions,
-    getBudget, setBudget,
+    getPlanned, setPlanned, getPlannedAmount, getPlannedTotal,
+    getActual, addActual, deleteActual, getPeriodActual,
     getIncomeEntries, addIncomeEntry, deleteIncomeEntry, getTotalIncome,
     getPeriodSummary,
   };

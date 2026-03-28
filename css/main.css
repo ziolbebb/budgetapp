@@ -44,6 +44,20 @@
 
 html { scroll-behavior: smooth; }
 
+/* --- Dark date input (fixes white calendar on all browsers) --- */
+input[type="date"] {
+  color-scheme: dark;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.6) sepia(1) saturate(4) hue-rotate(220deg) brightness(1.2);
+  cursor: pointer;
+  opacity: 0.85;
+}
+/* Firefox */
+input[type="date"]::-moz-calendar-picker-indicator {
+  filter: invert(1);
+}
+
 body {
   background: var(--bg);
   color: var(--text);
