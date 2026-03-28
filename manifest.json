@@ -1,7 +1,7 @@
 {
-  "name": "BudżetApp",
-  "short_name": "BudżetApp",
-  "description": "Planuj i kontroluj swój budżet",
+  "name": "BudgetApp",
+  "short_name": "BudgetApp",
+  "description": "Plan and track your budget",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#07070E",

@@ -1,74 +1,80 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
-  <title>BudżetApp</title>
+  <title>BudgetApp</title>
+
+  <!-- Favicon & PWA icons -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico"/>
+  <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png"/>
+  <link rel="icon" type="image/png" sizes="16x16" href="icon-16.png"/>
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png"/>
   <meta name="theme-color" content="#6C63FF"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="apple-mobile-web-app-title" content="BudżetApp"/>
+  <meta name="apple-mobile-web-app-title" content="BudgetApp"/>
   <link rel="manifest" href="manifest.json"/>
-  <link rel="apple-touch-icon" href="icon-192.png"/>
+
   <link rel="stylesheet" href="css/main.css"/>
 </head>
 <body>
 
-<!-- ══════════════════ LOGIN ══════════════════ -->
+<!-- ══════════ LOGIN ══════════ -->
 <div id="login-screen">
   <div class="lbox">
     <div class="lbox-logo">
-      <div class="lbox-icon">💰</div>
-      <div class="lbox-name">BudżetApp</div>
+      <div class="lbox-icon"><img src="icon-180.png" style="width:100%;height:100%;border-radius:10px;display:block"/></div>
+      <div class="lbox-name">BudgetApp</div>
     </div>
-    <h1>Zaloguj się</h1>
-    <p>Podaj swój PIN żeby uzyskać dostęp.</p>
+    <h1>Sign in</h1>
+    <p>Enter your PIN to access your finances.</p>
     <div style="display:flex;flex-direction:column;gap:16px">
       <div class="ig">
         <label class="lbl">PIN</label>
         <div class="lpw">
-          <input type="password" id="login-pw" placeholder="Wpisz PIN..." autocomplete="current-password" inputmode="numeric"/>
+          <input type="password" id="login-pw" placeholder="Enter PIN…" autocomplete="current-password" inputmode="numeric"/>
           <button class="lpw-eye" id="toggle-pw" type="button">👁</button>
         </div>
       </div>
       <div id="login-error" class="lerr hidden"></div>
-      <button class="btn-p" id="login-btn" style="width:100%;padding:14px;font-size:15px">Zaloguj →</button>
+      <button class="btn-p" id="login-btn" style="width:100%;padding:14px;font-size:15px">Sign in →</button>
     </div>
   </div>
 </div>
 
 
-<!-- ══════════════════ APP ══════════════════ -->
+<!-- ══════════ APP ══════════ -->
 <div id="app-screen" class="hidden">
 
   <header class="app-hdr">
     <div class="app-hdr-in">
       <div class="logo">
-        <div class="logo-icon">💰</div>
-        <span class="logo-name">BudżetApp</span>
+        <div class="logo-icon"><img src="icon-32.png" style="width:100%;height:100%;border-radius:6px;display:block"/></div>
+        <span class="logo-name">BudgetApp</span>
       </div>
       <nav class="nav">
-        <button class="nav-btn active" data-view="dashboard"><span>📊</span><span>Przegląd</span></button>
-        <button class="nav-btn" data-view="transactions"><span>💳</span><span>Transakcje</span></button>
-        <button class="nav-btn" data-view="savings"><span>🏦</span><span>Oszczędności</span></button>
-        <button class="nav-btn" data-view="longterm"><span>📦</span><span>Długoterminowe</span></button>
-        <button class="nav-btn" data-view="history"><span>📅</span><span>Historia</span></button>
+        <button class="nav-btn active" data-view="dashboard"><span>📊</span><span>Overview</span></button>
+        <button class="nav-btn" data-view="transactions"><span>💳</span><span>Transactions</span></button>
+        <button class="nav-btn" data-view="savings"><span>🏦</span><span>Savings</span></button>
+        <button class="nav-btn" data-view="longterm"><span>📦</span><span>Long-term</span></button>
+        <button class="nav-btn" data-view="history"><span>📅</span><span>History</span></button>
       </nav>
       <div style="display:flex;gap:8px;align-items:center">
         <button class="btn-g" id="change-pw-btn" style="font-size:12px;padding:6px 12px">🔑 PIN</button>
-        <button class="btn-logout" id="logout-btn">↩</button>
+        <button class="btn-logout" id="logout-btn" title="Sign out">↩</button>
       </div>
     </div>
   </header>
 
   <main class="app-main">
 
-    <!-- Period bar (shown on dashboard + transactions) -->
+    <!-- Period bar -->
     <div class="period-bar" id="period-bar-wrap">
       <div class="period-nav">
         <button class="pnav-btn" id="prev-period">‹</button>
         <div class="period-mid">
-          <div class="period-sub">Okres rozliczeniowy</div>
+          <div class="period-sub">Billing period</div>
           <div class="period-lbl" id="period-label">…</div>
         </div>
         <button class="pnav-btn" id="next-period">›</button>
@@ -76,84 +82,81 @@
       <span class="dim" id="period-count" style="font-size:13px"></span>
     </div>
 
-    <!-- Summary cards (dashboard + transactions) -->
+    <!-- Summary cards -->
     <div class="sum-grid" id="sum-grid-wrap">
       <div class="sum-card gc">
-        <div class="sum-lbl">↑ Przychód</div>
-        <div id="sum-income-val" class="sum-val green mono">0,00 zł</div>
+        <div class="sum-lbl">↑ Income</div>
+        <div id="sum-income-val" class="sum-val green mono">0.00 PLN</div>
       </div>
       <div class="sum-card pc">
-        <div class="sum-lbl" style="color:#9b92f5">📋 Plan</div>
-        <div id="sum-planned-val" class="sum-val mono" style="color:#a89ef8">0,00 zł</div>
+        <div class="sum-lbl" style="color:#9b92f5">📋 Planned</div>
+        <div id="sum-planned-val" class="sum-val mono" style="color:#a89ef8">0.00 PLN</div>
       </div>
       <div class="sum-card" style="background:var(--rbg);border:1px solid rgba(255,94,94,.15)">
-        <div class="sum-lbl">↓ Wydano</div>
-        <div id="sum-actual-val" class="sum-val red mono">0,00 zł</div>
+        <div class="sum-lbl">↓ Spent</div>
+        <div id="sum-actual-val" class="sum-val red mono">0.00 PLN</div>
       </div>
       <div class="sum-card nc" id="sum-balance-card">
-        <div class="sum-lbl">= Saldo (ten okres)</div>
-        <div id="sum-balance-val" class="sum-val mono">0,00 zł</div>
+        <div class="sum-lbl">= Balance (this period)</div>
+        <div id="sum-balance-val" class="sum-val mono">0.00 PLN</div>
       </div>
     </div>
 
-    <!-- Global balance bar -->
-    <div class="card p-20" id="global-balance-bar" style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+    <!-- Global balance -->
+    <div class="card p-20" style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
       <div>
-        <div class="sum-lbl" style="margin-bottom:6px">💰 Saldo łączne (wszystkie okresy)</div>
-        <div id="global-balance-val" class="sum-val green mono">0,00 zł</div>
+        <div class="sum-lbl" style="margin-bottom:6px">💰 Total balance (all periods)</div>
+        <div id="global-balance-val" class="sum-val green mono">0.00 PLN</div>
       </div>
-      <div class="dim" style="font-size:12px;text-align:right">Suma przychodów<br>minus suma wydatków</div>
+      <div class="dim" style="font-size:12px;text-align:right">Total income<br>minus total spending</div>
     </div>
 
 
-    <!-- ══ DASHBOARD ══ -->
+    <!-- ══ OVERVIEW ══ -->
     <div id="view-dashboard">
       <div class="card p-24" style="margin-bottom:16px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-          <h2 style="font-family:var(--display);font-size:16px;font-weight:700">Wydatki według kategorii</h2>
-        </div>
+        <h2 style="font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:16px">Spending by category</h2>
         <div class="cat-grid" id="cat-grid"></div>
       </div>
 
       <div class="card p-24">
-        <h2 style="font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:16px">Dodaj wpis</h2>
+        <h2 style="font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:16px">Add entry</h2>
         <div style="display:flex;flex-direction:column;gap:14px">
+
           <div class="ig">
-            <label class="lbl">Typ wpisu</label>
+            <label class="lbl">Entry type</label>
             <div class="type-toggle">
-              <button class="type-btn a-plan" data-subtype="planned">📋 Zaplanowany</button>
-              <button class="type-btn" data-subtype="actual">💸 Rzeczywisty</button>
-              <button class="type-btn" data-subtype="income">💵 Przychód</button>
+              <button class="type-btn a-plan" data-subtype="planned">📋 Planned</button>
+              <button class="type-btn" data-subtype="actual">💸 Actual</button>
+              <button class="type-btn" data-subtype="income">💵 Income</button>
             </div>
           </div>
 
-          <!-- Expense rows -->
           <div id="form-expense-rows">
             <div class="ig" style="margin-bottom:14px">
-              <label class="lbl">Kategoria wydatku</label>
+              <label class="lbl">Expense category</label>
               <div class="cat-pick-grid" id="cat-grid-form"></div>
               <input type="hidden" id="form-selected-cat" value="paliwo"/>
             </div>
-            <div class="ig" style="margin-bottom:14px">
-              <label class="lbl">Opis</label>
-              <input type="text" id="form-desc" placeholder="np. Tankowanie na Orlenie…"/>
+            <div class="ig" style="margin-bottom:0">
+              <label class="lbl">Description</label>
+              <input type="text" id="form-desc" placeholder="e.g. Fuel at Shell…"/>
             </div>
           </div>
 
-          <!-- Income rows -->
           <div id="form-income-rows" class="hidden">
-            <div class="ig" style="margin-bottom:14px">
-              <label class="lbl">Źródło przychodu</label>
+            <div class="ig">
+              <label class="lbl">Income source</label>
               <div class="cat-pick-grid" id="inc-cat-grid-form"></div>
               <input type="hidden" id="form-selected-inc-cat" value="dominos"/>
             </div>
           </div>
 
           <div class="ig">
-            <label class="lbl">Kwota (zł)</label>
-            <input type="number" id="form-amount" min="0" step="0.01" placeholder="0,00" inputmode="decimal"/>
+            <label class="lbl">Amount (PLN)</label>
+            <input type="number" id="form-amount" min="0" step="0.01" placeholder="0.00" inputmode="decimal"/>
           </div>
-          <button class="btn-p" id="add-btn" style="align-self:flex-start;padding:12px 28px">+ Dodaj</button>
+          <button class="btn-p" id="add-btn" style="align-self:flex-start;padding:12px 28px">+ Add</button>
         </div>
       </div>
     </div>
@@ -162,16 +165,16 @@
     <!-- ══ TRANSACTIONS ══ -->
     <div id="view-transactions" class="hidden">
       <div class="tabs">
-        <button class="tab-btn active" data-tab="actual">💸 Wydatki</button>
-        <button class="tab-btn" data-tab="planned">📋 Zaplanowane</button>
-        <button class="tab-btn" data-tab="income">💵 Przychody</button>
+        <button class="tab-btn active" data-tab="actual">💸 Actual</button>
+        <button class="tab-btn" data-tab="planned">📋 Planned</button>
+        <button class="tab-btn" data-tab="income">💵 Income</button>
       </div>
       <div id="tx-filter-row" style="display:flex;justify-content:flex-end;margin-bottom:14px">
         <select id="tx-filter" style="width:auto;font-size:13px;padding:7px 12px"></select>
       </div>
       <div id="tx-actual-sec"  class="card p-24"><div class="tx-list" id="tx-actual-list"></div></div>
       <div id="tx-planned-sec" class="hidden card p-24">
-        <div class="dim" style="font-size:13px;margin-bottom:14px">Zaplanowane wydatki na ten okres — bez konkretnej daty.</div>
+        <div class="dim" style="font-size:13px;margin-bottom:14px">Planned expenses for this period — no specific date, assigned to the whole period.</div>
         <div class="tx-list" id="tx-planned-list"></div>
       </div>
       <div id="tx-income-sec"  class="hidden card p-24"><div class="tx-list" id="tx-income-list"></div></div>
@@ -181,34 +184,34 @@
     <!-- ══ SAVINGS ══ -->
     <div id="view-savings" class="hidden">
       <div class="add-box">
-        <div class="add-box-title">🎯 Nowy cel oszczędnościowy</div>
+        <div class="add-box-title">🎯 New savings goal</div>
         <div class="g2" style="margin-bottom:10px">
-          <div class="ig"><label class="lbl">Nazwa celu</label><input type="text" id="goal-name" placeholder="np. Nowy laptop"/></div>
-          <div class="ig"><label class="lbl">Kwota docelowa (zł)</label><input type="number" id="goal-target" min="1" step="1" placeholder="5000"/></div>
+          <div class="ig"><label class="lbl">Goal name</label><input type="text" id="goal-name" placeholder="e.g. New laptop"/></div>
+          <div class="ig"><label class="lbl">Target amount (PLN)</label><input type="number" id="goal-target" min="1" step="1" placeholder="5000"/></div>
         </div>
         <div class="g2" style="margin-bottom:14px">
-          <div class="ig"><label class="lbl">Emoji ikony</label><input type="text" id="goal-icon" placeholder="🎯" maxlength="4"/></div>
-          <div class="ig"><label class="lbl">Kolor</label><input type="color" id="goal-color" value="#6C63FF"/></div>
+          <div class="ig"><label class="lbl">Icon (emoji)</label><input type="text" id="goal-icon" placeholder="🎯" maxlength="4"/></div>
+          <div class="ig"><label class="lbl">Color</label><input type="color" id="goal-color" value="#6C63FF"/></div>
         </div>
-        <button class="btn-p" id="add-goal-btn">+ Dodaj cel</button>
+        <button class="btn-p" id="add-goal-btn">+ Add goal</button>
       </div>
       <div id="savings-list"></div>
     </div>
 
 
-    <!-- ══ LONGTERM ══ -->
+    <!-- ══ LONG-TERM ══ -->
     <div id="view-longterm" class="hidden">
       <div class="add-box">
-        <div class="add-box-title">📦 Nowy długoterminowy wydatek</div>
+        <div class="add-box-title">📦 New long-term expense</div>
         <div class="g2" style="margin-bottom:10px">
-          <div class="ig"><label class="lbl">Nazwa</label><input type="text" id="lt-name" placeholder="np. Remont łazienki"/></div>
-          <div class="ig"><label class="lbl">Całkowity budżet (zł)</label><input type="number" id="lt-budget" min="1" step="1" placeholder="10000"/></div>
+          <div class="ig"><label class="lbl">Name</label><input type="text" id="lt-name" placeholder="e.g. Bathroom renovation"/></div>
+          <div class="ig"><label class="lbl">Total budget (PLN)</label><input type="number" id="lt-budget" min="1" step="1" placeholder="10000"/></div>
         </div>
         <div class="g2" style="margin-bottom:14px">
-          <div class="ig"><label class="lbl">Emoji ikony</label><input type="text" id="lt-icon" placeholder="📦" maxlength="4"/></div>
-          <div class="ig"><label class="lbl">Kolor</label><input type="color" id="lt-color" value="#F5C542"/></div>
+          <div class="ig"><label class="lbl">Icon (emoji)</label><input type="text" id="lt-icon" placeholder="📦" maxlength="4"/></div>
+          <div class="ig"><label class="lbl">Color</label><input type="color" id="lt-color" value="#F5C542"/></div>
         </div>
-        <button class="btn-p" id="add-longterm-btn">+ Dodaj</button>
+        <button class="btn-p" id="add-longterm-btn">+ Add</button>
       </div>
       <div id="longterm-list"></div>
     </div>
@@ -216,8 +219,8 @@
 
     <!-- ══ HISTORY ══ -->
     <div id="view-history" class="hidden">
-      <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:6px">Historia okresów</h2>
-      <p class="dim" style="font-size:13px;margin-bottom:20px">Podsumowanie każdego okresu rozliczeniowego.</p>
+      <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:6px">Period history</h2>
+      <p class="dim" style="font-size:13px;margin-bottom:20px">Summary of each billing period.</p>
       <div id="history-list"></div>
     </div>
 
@@ -228,14 +231,14 @@
 <!-- ══ EDIT MODAL ══ -->
 <div id="edit-modal" class="modal-bg hidden">
   <div class="card p-24 modal-box">
-    <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:20px">✏️ Edytuj wpis</h2>
+    <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:20px">✏️ Edit entry</h2>
     <div style="display:flex;flex-direction:column;gap:14px">
-      <div class="ig"><label class="lbl">Kategoria</label><select id="edit-category"></select></div>
-      <div class="ig"><label class="lbl">Opis</label><input type="text" id="edit-desc"/></div>
-      <div class="ig"><label class="lbl">Kwota (zł)</label><input type="number" id="edit-amount" min="0" step="0.01"/></div>
+      <div class="ig"><label class="lbl">Category</label><select id="edit-category"></select></div>
+      <div class="ig"><label class="lbl">Description</label><input type="text" id="edit-desc"/></div>
+      <div class="ig"><label class="lbl">Amount (PLN)</label><input type="number" id="edit-amount" min="0" step="0.01"/></div>
       <div style="display:flex;gap:10px">
-        <button class="btn-p" id="edit-save" style="flex:1">Zapisz</button>
-        <button class="btn-g" id="edit-cancel" style="flex:1">Anuluj</button>
+        <button class="btn-p" id="edit-save" style="flex:1">Save</button>
+        <button class="btn-g" id="edit-cancel" style="flex:1">Cancel</button>
       </div>
     </div>
   </div>
@@ -245,24 +248,21 @@
 <!-- ══ CHANGE PIN MODAL ══ -->
 <div id="change-pw-modal" class="modal-bg hidden">
   <div class="card p-24 modal-box">
-    <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:20px">🔑 Zmień PIN</h2>
+    <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:20px">🔑 Change PIN</h2>
     <div style="display:flex;flex-direction:column;gap:14px">
-      <div class="ig"><label class="lbl">Obecny PIN</label><input type="password" id="cpw-old" inputmode="numeric"/></div>
-      <div class="ig"><label class="lbl">Nowy PIN (min. 4 znaki)</label><input type="password" id="cpw-new" inputmode="numeric"/></div>
-      <div class="ig"><label class="lbl">Powtórz nowy PIN</label><input type="password" id="cpw-new2" inputmode="numeric"/></div>
+      <div class="ig"><label class="lbl">Current PIN</label><input type="password" id="cpw-old" inputmode="numeric"/></div>
+      <div class="ig"><label class="lbl">New PIN (min. 4 digits)</label><input type="password" id="cpw-new" inputmode="numeric"/></div>
+      <div class="ig"><label class="lbl">Repeat new PIN</label><input type="password" id="cpw-new2" inputmode="numeric"/></div>
       <p id="cpw-error" class="lerr hidden" style="margin:0"></p>
       <div style="display:flex;gap:10px">
-        <button class="btn-p" id="cpw-submit" style="flex:1">Zapisz PIN</button>
-        <button class="btn-g" id="cpw-cancel" style="flex:1">Anuluj</button>
+        <button class="btn-p" id="cpw-submit" style="flex:1">Save PIN</button>
+        <button class="btn-g" id="cpw-cancel" style="flex:1">Cancel</button>
       </div>
     </div>
   </div>
 </div>
 
-
-<!-- Spinner -->
 <div id="spinner" class="hidden"><div class="spin"></div></div>
-<!-- Toast -->
 <div id="toast"></div>
 
 <script src="js/config.js"></script>
@@ -271,7 +271,6 @@
 <script src="js/app.js"></script>
 <script>
 (async () => {
-  // Toggle PIN visibility
   document.getElementById("toggle-pw").onclick = () => {
     const inp = document.getElementById("login-pw");
     inp.type = inp.type === "password" ? "text" : "password";
@@ -281,7 +280,7 @@
     const pin = document.getElementById("login-pw").value.trim();
     const err = document.getElementById("login-error");
     err.classList.add("hidden");
-    if (!pin) { err.textContent = "Wpisz PIN."; err.classList.remove("hidden"); return; }
+    if (!pin) { err.textContent = "Please enter your PIN."; err.classList.remove("hidden"); return; }
 
     document.getElementById("spinner").classList.remove("hidden");
     try {
@@ -292,13 +291,13 @@
         document.getElementById("app-screen").classList.remove("hidden");
         App.init();
       } else {
-        err.textContent = "Nieprawidłowy PIN.";
+        err.textContent = "Incorrect PIN. Please try again.";
         err.classList.remove("hidden");
         document.getElementById("login-pw").value = "";
         document.getElementById("login-pw").focus();
       }
     } catch(e) {
-      err.textContent = "Błąd połączenia z bazą danych. Sprawdź internet.";
+      err.textContent = "Connection error. Check your internet connection.";
       err.classList.remove("hidden");
       console.error(e);
     } finally {
