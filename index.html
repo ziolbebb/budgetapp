@@ -1,128 +1,125 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
   <title>BudżetApp</title>
-  <meta name="theme-color" content="#6C63FF" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="BudżetApp" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
-  <link rel="stylesheet" href="css/main.css" />
-  <link rel="stylesheet" href="css/login.css" />
-  <link rel="stylesheet" href="css/app.css" />
+  <meta name="theme-color" content="#6C63FF"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title" content="BudżetApp"/>
+  <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <link rel="stylesheet" href="css/main.css"/>
 </head>
 <body>
 
-<!-- ===================== LOGIN ===================== -->
+<!-- ══════════════════ LOGIN ══════════════════ -->
 <div id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">
-      <div class="login-logo-icon">💰</div>
-      <div class="login-logo-text">BudżetApp</div>
+  <div class="lbox">
+    <div class="lbox-logo">
+      <div class="lbox-icon">💰</div>
+      <div class="lbox-name">BudżetApp</div>
     </div>
-    <h1 class="login-title">Zaloguj się</h1>
-    <p class="login-subtitle">Twoje finanse są chronione hasłem.</p>
-    <div class="login-form">
-      <div class="input-group">
-        <label for="login-pw">Hasło</label>
-        <div class="input-password-wrap">
-          <input type="password" id="login-pw" placeholder="Wpisz hasło..." autocomplete="current-password" />
-          <button class="toggle-pw" id="toggle-login-pw" type="button">👁</button>
+    <h1>Zaloguj się</h1>
+    <p>Podaj swój PIN żeby uzyskać dostęp.</p>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="ig">
+        <label class="lbl">PIN</label>
+        <div class="lpw">
+          <input type="password" id="login-pw" placeholder="Wpisz PIN..." autocomplete="current-password" inputmode="numeric"/>
+          <button class="lpw-eye" id="toggle-pw" type="button">👁</button>
         </div>
       </div>
-      <div id="login-error" class="login-error hidden"></div>
-      <button class="btn-primary login-submit" id="login-btn">Zaloguj →</button>
-    </div>
-    <div class="login-hint">
-      Domyślne hasło: <strong>budzetapp2024</strong><br>
-      Zmień je po pierwszym logowaniu → przycisk 🔑 Hasło.
+      <div id="login-error" class="lerr hidden"></div>
+      <button class="btn-p" id="login-btn" style="width:100%;padding:14px;font-size:15px">Zaloguj →</button>
     </div>
   </div>
 </div>
 
 
-<!-- ===================== APP ===================== -->
+<!-- ══════════════════ APP ══════════════════ -->
 <div id="app-screen" class="hidden">
 
-  <header class="app-header">
-    <div class="app-header-inner">
-      <div class="app-logo">
-        <div class="app-logo-icon">💰</div>
-        <span class="app-logo-name">BudżetApp</span>
+  <header class="app-hdr">
+    <div class="app-hdr-in">
+      <div class="logo">
+        <div class="logo-icon">💰</div>
+        <span class="logo-name">BudżetApp</span>
       </div>
-      <nav class="app-nav">
-        <button class="nav-btn active" data-view="dashboard">
-          <span class="nav-icon">📊</span><span>Przegląd</span>
-        </button>
-        <button class="nav-btn" data-view="transactions">
-          <span class="nav-icon">💳</span><span>Transakcje</span>
-        </button>
+      <nav class="nav">
+        <button class="nav-btn active" data-view="dashboard"><span>📊</span><span>Przegląd</span></button>
+        <button class="nav-btn" data-view="transactions"><span>💳</span><span>Transakcje</span></button>
+        <button class="nav-btn" data-view="savings"><span>🏦</span><span>Oszczędności</span></button>
+        <button class="nav-btn" data-view="longterm"><span>📦</span><span>Długoterminowe</span></button>
+        <button class="nav-btn" data-view="history"><span>📅</span><span>Historia</span></button>
       </nav>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn-ghost btn-pw" id="change-pw-btn">🔑 Hasło</button>
-        <button class="btn-logout" id="logout-btn">↩ Wyloguj</button>
+        <button class="btn-g" id="change-pw-btn" style="font-size:12px;padding:6px 12px">🔑 PIN</button>
+        <button class="btn-logout" id="logout-btn">↩</button>
       </div>
     </div>
   </header>
 
   <main class="app-main">
 
-    <!-- PERIOD BAR -->
-    <div class="period-bar">
+    <!-- Period bar (shown on dashboard + transactions) -->
+    <div class="period-bar" id="period-bar-wrap">
       <div class="period-nav">
-        <button class="period-nav-btn" id="prev-period">‹</button>
-        <div class="period-label-wrap">
-          <div class="period-label-top">Okres rozliczeniowy</div>
-          <div class="period-label" id="period-label">…</div>
+        <button class="pnav-btn" id="prev-period">‹</button>
+        <div class="period-mid">
+          <div class="period-sub">Okres rozliczeniowy</div>
+          <div class="period-lbl" id="period-label">…</div>
         </div>
-        <button class="period-nav-btn" id="next-period">›</button>
+        <button class="pnav-btn" id="next-period">›</button>
       </div>
-      <span class="period-count" id="period-count"></span>
+      <span class="dim" id="period-count" style="font-size:13px"></span>
     </div>
 
-    <!-- SUMMARY CARDS -->
-    <div class="summary-grid">
-      <div class="summary-card green-card">
-        <div class="summary-label">↑ Przychód</div>
-        <div id="sum-income-val" class="summary-value green mono">0,00 zł</div>
+    <!-- Summary cards (dashboard + transactions) -->
+    <div class="sum-grid" id="sum-grid-wrap">
+      <div class="sum-card gc">
+        <div class="sum-lbl">↑ Przychód</div>
+        <div id="sum-income-val" class="sum-val green mono">0,00 zł</div>
       </div>
-      <div class="summary-card" style="background:rgba(108,99,255,.06);border:1px solid rgba(108,99,255,.2)">
-        <div class="summary-label" style="color:#9b92f5">📋 Plan wydatków</div>
-        <div id="sum-planned-val" class="summary-value mono" style="color:#a89ef8">0,00 zł</div>
+      <div class="sum-card pc">
+        <div class="sum-lbl" style="color:#9b92f5">📋 Plan</div>
+        <div id="sum-planned-val" class="sum-val mono" style="color:#a89ef8">0,00 zł</div>
       </div>
-      <div class="summary-card red-card">
-        <div class="summary-label">↓ Wydatki rzeczywiste</div>
-        <div id="sum-actual-val" class="summary-value red mono">0,00 zł</div>
+      <div class="sum-card" style="background:var(--rbg);border:1px solid rgba(255,94,94,.15)">
+        <div class="sum-lbl">↓ Wydano</div>
+        <div id="sum-actual-val" class="sum-val red mono">0,00 zł</div>
       </div>
-      <div class="summary-card neutral-card" id="sum-balance-card">
-        <div class="summary-label">= Saldo</div>
-        <div id="sum-balance-val" class="summary-value mono">0,00 zł</div>
+      <div class="sum-card nc" id="sum-balance-card">
+        <div class="sum-lbl">= Saldo (ten okres)</div>
+        <div id="sum-balance-val" class="sum-val mono">0,00 zł</div>
       </div>
     </div>
 
+    <!-- Global balance bar -->
+    <div class="card p-20" id="global-balance-bar" style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div class="sum-lbl" style="margin-bottom:6px">💰 Saldo łączne (wszystkie okresy)</div>
+        <div id="global-balance-val" class="sum-val green mono">0,00 zł</div>
+      </div>
+      <div class="dim" style="font-size:12px;text-align:right">Suma przychodów<br>minus suma wydatków</div>
+    </div>
 
-    <!-- =============== DASHBOARD =============== -->
+
+    <!-- ══ DASHBOARD ══ -->
     <div id="view-dashboard">
-
       <div class="card p-24" style="margin-bottom:16px">
-        <div class="section-header">
-          <h2 class="section-title">Wydatki według kategorii</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h2 style="font-family:var(--display);font-size:16px;font-weight:700">Wydatki według kategorii</h2>
         </div>
         <div class="cat-grid" id="cat-grid"></div>
       </div>
 
       <div class="card p-24">
-        <div class="section-header">
-          <h2 class="section-title">Dodaj wpis</h2>
-        </div>
-        <div class="add-form">
-
-          <!-- Type: planned | actual | income -->
-          <div class="input-group">
-            <label class="label">Typ wpisu</label>
+        <h2 style="font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:16px">Dodaj wpis</h2>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="ig">
+            <label class="lbl">Typ wpisu</label>
             <div class="type-toggle">
               <button class="type-btn a-plan" data-subtype="planned">📋 Zaplanowany</button>
               <button class="type-btn" data-subtype="actual">💸 Rzeczywisty</button>
@@ -130,139 +127,197 @@
             </div>
           </div>
 
-          <!-- Category (for expense/planned) -->
-          <div id="category-row" class="input-group">
-            <label class="label">Kategoria</label>
-            <select id="form-category"></select>
-          </div>
-
-          <!-- Income source (hidden by default) -->
-          <div id="income-source-row" class="hidden">
-            <div class="input-group">
-              <label class="label">Źródło przychodu</label>
-              <select id="form-income-source"></select>
+          <!-- Expense rows -->
+          <div id="form-expense-rows">
+            <div class="ig" style="margin-bottom:14px">
+              <label class="lbl">Kategoria wydatku</label>
+              <div class="cat-pick-grid" id="cat-grid-form"></div>
+              <input type="hidden" id="form-selected-cat" value="paliwo"/>
+            </div>
+            <div class="ig" style="margin-bottom:14px">
+              <label class="lbl">Opis</label>
+              <input type="text" id="form-desc" placeholder="np. Tankowanie na Orlenie…"/>
             </div>
           </div>
 
-          <!-- Description (hidden for income) -->
-          <div id="desc-row" class="input-group">
-            <label class="label">Opis</label>
-            <input type="text" id="form-desc" placeholder="np. Tankowanie na Orlenie..." />
+          <!-- Income rows -->
+          <div id="form-income-rows" class="hidden">
+            <div class="ig" style="margin-bottom:14px">
+              <label class="lbl">Źródło przychodu</label>
+              <div class="cat-pick-grid" id="inc-cat-grid-form"></div>
+              <input type="hidden" id="form-selected-inc-cat" value="dominos"/>
+            </div>
           </div>
 
-          <div class="input-group">
-            <label class="label">Kwota (zł)</label>
-            <input type="number" id="form-amount" min="0" step="0.01" placeholder="0,00" />
+          <div class="ig">
+            <label class="lbl">Kwota (zł)</label>
+            <input type="number" id="form-amount" min="0" step="0.01" placeholder="0,00" inputmode="decimal"/>
           </div>
-
-          <button class="btn-primary" id="add-btn" style="align-self:flex-start;padding:12px 28px">+ Dodaj</button>
+          <button class="btn-p" id="add-btn" style="align-self:flex-start;padding:12px 28px">+ Dodaj</button>
         </div>
       </div>
     </div>
 
 
-    <!-- =============== TRANSACTIONS =============== -->
+    <!-- ══ TRANSACTIONS ══ -->
     <div id="view-transactions" class="hidden">
-
-      <!-- Tabs -->
       <div class="tabs">
         <button class="tab-btn active" data-tab="actual">💸 Wydatki</button>
-        <button class="tab-btn" data-tab="planned">📋 Plan kategorii</button>
+        <button class="tab-btn" data-tab="planned">📋 Zaplanowane</button>
         <button class="tab-btn" data-tab="income">💵 Przychody</button>
       </div>
-
-      <!-- Filter row (actual only) -->
       <div id="tx-filter-row" style="display:flex;justify-content:flex-end;margin-bottom:14px">
-        <select id="tx-filter" class="filter-select"></select>
+        <select id="tx-filter" style="width:auto;font-size:13px;padding:7px 12px"></select>
       </div>
+      <div id="tx-actual-sec"  class="card p-24"><div class="tx-list" id="tx-actual-list"></div></div>
+      <div id="tx-planned-sec" class="hidden card p-24">
+        <div class="dim" style="font-size:13px;margin-bottom:14px">Zaplanowane wydatki na ten okres — bez konkretnej daty.</div>
+        <div class="tx-list" id="tx-planned-list"></div>
+      </div>
+      <div id="tx-income-sec"  class="hidden card p-24"><div class="tx-list" id="tx-income-list"></div></div>
+    </div>
 
-      <!-- Actual list -->
-      <div id="tx-expense-section" class="card p-24">
-        <div class="tx-list" id="tx-list"></div>
-      </div>
 
-      <!-- Planned transactions list -->
-      <div id="tx-planned-section" class="hidden card p-24">
-        <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px">
-          Zaplanowane wydatki na ten okres — bez konkretnych dat, tylko przypisane do kategorii i okresu rozliczeniowego.
-        </p>
-        <div class="tx-list" id="planned-tx-list"></div>
+    <!-- ══ SAVINGS ══ -->
+    <div id="view-savings" class="hidden">
+      <div class="add-box">
+        <div class="add-box-title">🎯 Nowy cel oszczędnościowy</div>
+        <div class="g2" style="margin-bottom:10px">
+          <div class="ig"><label class="lbl">Nazwa celu</label><input type="text" id="goal-name" placeholder="np. Nowy laptop"/></div>
+          <div class="ig"><label class="lbl">Kwota docelowa (zł)</label><input type="number" id="goal-target" min="1" step="1" placeholder="5000"/></div>
+        </div>
+        <div class="g2" style="margin-bottom:14px">
+          <div class="ig"><label class="lbl">Emoji ikony</label><input type="text" id="goal-icon" placeholder="🎯" maxlength="4"/></div>
+          <div class="ig"><label class="lbl">Kolor</label><input type="color" id="goal-color" value="#6C63FF"/></div>
+        </div>
+        <button class="btn-p" id="add-goal-btn">+ Dodaj cel</button>
       </div>
+      <div id="savings-list"></div>
+    </div>
 
-      <!-- Income list -->
-      <div id="tx-income-section" class="hidden card p-24">
-        <div class="tx-list" id="income-list"></div>
+
+    <!-- ══ LONGTERM ══ -->
+    <div id="view-longterm" class="hidden">
+      <div class="add-box">
+        <div class="add-box-title">📦 Nowy długoterminowy wydatek</div>
+        <div class="g2" style="margin-bottom:10px">
+          <div class="ig"><label class="lbl">Nazwa</label><input type="text" id="lt-name" placeholder="np. Remont łazienki"/></div>
+          <div class="ig"><label class="lbl">Całkowity budżet (zł)</label><input type="number" id="lt-budget" min="1" step="1" placeholder="10000"/></div>
+        </div>
+        <div class="g2" style="margin-bottom:14px">
+          <div class="ig"><label class="lbl">Emoji ikony</label><input type="text" id="lt-icon" placeholder="📦" maxlength="4"/></div>
+          <div class="ig"><label class="lbl">Kolor</label><input type="color" id="lt-color" value="#F5C542"/></div>
+        </div>
+        <button class="btn-p" id="add-longterm-btn">+ Dodaj</button>
       </div>
+      <div id="longterm-list"></div>
+    </div>
+
+
+    <!-- ══ HISTORY ══ -->
+    <div id="view-history" class="hidden">
+      <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:6px">Historia okresów</h2>
+      <p class="dim" style="font-size:13px;margin-bottom:20px">Podsumowanie każdego okresu rozliczeniowego.</p>
+      <div id="history-list"></div>
     </div>
 
   </main>
 </div>
 
 
-<!-- =============== CHANGE PW MODAL =============== -->
-<div id="change-pw-modal" class="hidden" style="
-  position:fixed;inset:0;z-index:500;
-  display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.75);backdrop-filter:blur(8px);padding:24px">
-  <div class="card p-24" style="width:100%;max-width:380px;animation:loginAppear .3s ease both">
-    <h2 style="font-family:var(--font-display);font-size:20px;font-weight:800;margin-bottom:20px">🔑 Zmień hasło</h2>
+<!-- ══ EDIT MODAL ══ -->
+<div id="edit-modal" class="modal-bg hidden">
+  <div class="card p-24 modal-box">
+    <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:20px">✏️ Edytuj wpis</h2>
     <div style="display:flex;flex-direction:column;gap:14px">
-      <div class="input-group"><label class="label">Obecne hasło</label><input type="password" id="cpw-old" placeholder="Obecne hasło"/></div>
-      <div class="input-group"><label class="label">Nowe hasło</label><input type="password" id="cpw-new" placeholder="Min. 6 znaków"/></div>
-      <div class="input-group"><label class="label">Powtórz nowe hasło</label><input type="password" id="cpw-new2" placeholder="Powtórz hasło"/></div>
-      <p id="cpw-error" class="login-error hidden" style="margin:0"></p>
-      <div style="display:flex;gap:10px;margin-top:4px">
-        <button class="btn-primary" id="cpw-submit" style="flex:1">Zapisz hasło</button>
-        <button class="btn-ghost" id="cpw-cancel" style="flex:1">Anuluj</button>
+      <div class="ig"><label class="lbl">Kategoria</label><select id="edit-category"></select></div>
+      <div class="ig"><label class="lbl">Opis</label><input type="text" id="edit-desc"/></div>
+      <div class="ig"><label class="lbl">Kwota (zł)</label><input type="number" id="edit-amount" min="0" step="0.01"/></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn-p" id="edit-save" style="flex:1">Zapisz</button>
+        <button class="btn-g" id="edit-cancel" style="flex:1">Anuluj</button>
       </div>
     </div>
   </div>
 </div>
 
+
+<!-- ══ CHANGE PIN MODAL ══ -->
+<div id="change-pw-modal" class="modal-bg hidden">
+  <div class="card p-24 modal-box">
+    <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:20px">🔑 Zmień PIN</h2>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="ig"><label class="lbl">Obecny PIN</label><input type="password" id="cpw-old" inputmode="numeric"/></div>
+      <div class="ig"><label class="lbl">Nowy PIN (min. 4 znaki)</label><input type="password" id="cpw-new" inputmode="numeric"/></div>
+      <div class="ig"><label class="lbl">Powtórz nowy PIN</label><input type="password" id="cpw-new2" inputmode="numeric"/></div>
+      <p id="cpw-error" class="lerr hidden" style="margin:0"></p>
+      <div style="display:flex;gap:10px">
+        <button class="btn-p" id="cpw-submit" style="flex:1">Zapisz PIN</button>
+        <button class="btn-g" id="cpw-cancel" style="flex:1">Anuluj</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Spinner -->
+<div id="spinner" class="hidden"><div class="spin"></div></div>
+<!-- Toast -->
 <div id="toast"></div>
 
-<script src="js/auth.js"></script>
-<script src="js/data.js"></script>
+<script src="js/config.js"></script>
+<script src="js/db.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/app.js"></script>
 <script>
 (async () => {
-  document.getElementById("toggle-login-pw").onclick = () => {
+  // Toggle PIN visibility
+  document.getElementById("toggle-pw").onclick = () => {
     const inp = document.getElementById("login-pw");
     inp.type = inp.type === "password" ? "text" : "password";
   };
 
   const doLogin = async () => {
-    const pw  = document.getElementById("login-pw").value;
+    const pin = document.getElementById("login-pw").value.trim();
     const err = document.getElementById("login-error");
-    if (!pw) { err.textContent = "Wpisz hasło."; err.classList.remove("hidden"); return; }
-    const ok = await Auth.login(pw);
-    if (ok) {
-      document.getElementById("login-screen").classList.add("hidden");
-      document.getElementById("app-screen").classList.remove("hidden");
-      App.init();
-      App.initChangePwModal();
-    } else {
-      err.textContent = "Nieprawidłowe hasło. Spróbuj ponownie.";
+    err.classList.add("hidden");
+    if (!pin) { err.textContent = "Wpisz PIN."; err.classList.remove("hidden"); return; }
+
+    document.getElementById("spinner").classList.remove("hidden");
+    try {
+      const ok = await DB.checkPin(pin);
+      if (ok) {
+        DB.saveSession();
+        document.getElementById("login-screen").classList.add("hidden");
+        document.getElementById("app-screen").classList.remove("hidden");
+        App.init();
+      } else {
+        err.textContent = "Nieprawidłowy PIN.";
+        err.classList.remove("hidden");
+        document.getElementById("login-pw").value = "";
+        document.getElementById("login-pw").focus();
+      }
+    } catch(e) {
+      err.textContent = "Błąd połączenia z bazą danych. Sprawdź internet.";
       err.classList.remove("hidden");
-      document.getElementById("login-pw").value = "";
-      document.getElementById("login-pw").focus();
+      console.error(e);
+    } finally {
+      document.getElementById("spinner").classList.add("hidden");
     }
   };
 
   document.getElementById("login-btn").onclick = doLogin;
   document.getElementById("login-pw").onkeydown = e => { if (e.key === "Enter") doLogin(); };
 
-  if (Auth.isLoggedIn()) {
+  if (DB.isLoggedIn()) {
     document.getElementById("login-screen").classList.add("hidden");
     document.getElementById("app-screen").classList.remove("hidden");
     App.init();
-    App.initChangePwModal();
   }
 })();
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(() => {}));
+  window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(()=>{}));
 }
 </script>
 </body>

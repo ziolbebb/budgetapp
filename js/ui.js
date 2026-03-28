@@ -1,11 +1,9 @@
-/* ============================================
-   BUDŻETAPP — js/ui.js
-   UI helpers: toast, formatting, categories
-   ============================================ */
+// ============================================================
+// BudżetApp — js/ui.js
+// ============================================================
 
 const UI = (() => {
 
-  // --- Expense Categories ---
   const CATEGORIES = [
     { id: "paliwo",       label: "Paliwo",       icon: "⛽", color: "#FF8C42" },
     { id: "zabka",        label: "Żabka",         icon: "🐸", color: "#4CAF50" },
@@ -20,7 +18,6 @@ const UI = (() => {
     { id: "inne",         label: "Inne",          icon: "💡", color: "#BDBDBD" },
   ];
 
-  // --- Income Categories ---
   const INCOME_CATEGORIES = [
     { id: "dominos",  label: "Domino's", icon: "🍕", color: "#E53935" },
     { id: "rodzice",  label: "Rodzice",  icon: "👨‍👩‍👦", color: "#42A5F5" },
@@ -30,46 +27,29 @@ const UI = (() => {
 
   const MONTHS = ["Sty","Lut","Mar","Kwi","Maj","Cze","Lip","Sie","Wrz","Paź","Lis","Gru"];
 
-  // ============================================================
-  // Period logic: 10th of month → 9th of next month
-  // ============================================================
+  // ── Period logic (10th → 9th) ──────────────────────────────
 
   function getCurrentPeriodBase() {
     const now = new Date();
-    const d = now.getDate();
-    if (d >= 10) {
-      return { year: now.getFullYear(), month: now.getMonth() };
-    } else {
-      let m = now.getMonth() - 1;
-      let y = now.getFullYear();
-      if (m < 0) { m = 11; y--; }
-      return { year: y, month: m };
-    }
+    const d   = now.getDate();
+    if (d >= 10) return { year: now.getFullYear(), month: now.getMonth() };
+    let m = now.getMonth() - 1, y = now.getFullYear();
+    if (m < 0) { m = 11; y--; }
+    return { year: y, month: m };
   }
 
   function periodFromBase(base, offset) {
-    let m = base.month + offset;
-    let y = base.year;
+    let m = base.month + offset, y = base.year;
     while (m < 0)  { m += 12; y--; }
     while (m > 11) { m -= 12; y++; }
-
     const startDate = `${y}-${String(m+1).padStart(2,"0")}-10`;
-
     let em = m + 1, ey = y;
     if (em > 11) { em = 0; ey++; }
-    const endDate = `${ey}-${String(em+1).padStart(2,"0")}-09`;
-
-    const startLabel = `10 ${MONTHS[m]}`;
-    const endLabel   = `9 ${MONTHS[em]}${ey !== y ? " "+ey : ""}`;
-    const label      = `${startLabel} – ${endLabel} ${y}`;
-    const periodKey  = `p_${y}_${String(m+1).padStart(2,"0")}`;
-
+    const endDate   = `${ey}-${String(em+1).padStart(2,"0")}-09`;
+    const label     = `10 ${MONTHS[m]} – 9 ${MONTHS[em]}${ey !== y ? " "+ey : ""} ${y}`;
+    const periodKey = `p_${y}_${String(m+1).padStart(2,"0")}`;
     return { year: y, month: m, startDate, endDate, label, periodKey };
   }
-
-  // ============================================================
-  // Category helpers
-  // ============================================================
 
   function getCategory(id) {
     return CATEGORIES.find(c => c.id === id)
@@ -77,54 +57,43 @@ const UI = (() => {
         || CATEGORIES[CATEGORIES.length - 1];
   }
 
-  // ============================================================
-  // Formatting
-  // ============================================================
-
   function formatPLN(n) {
     return (+n || 0).toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " zł";
   }
 
-  function todayISO() {
-    return new Date().toISOString().slice(0, 10);
-  }
+  function todayISO() { return new Date().toISOString().slice(0, 10); }
 
-  // ============================================================
-  // Toast
-  // ============================================================
+  // ── Toast ──────────────────────────────────────────────────
+
   let toastTimer = null;
-  function toast(msg, type = "success") {
+  function toast(msg, type = "ok") {
     const el = document.getElementById("toast");
     if (!el) return;
     el.textContent = msg;
     el.className = `show ${type}`;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => { el.className = ""; }, 2500);
+    toastTimer = setTimeout(() => { el.className = ""; }, 2800);
   }
 
-  // ============================================================
-  // DOM helpers
-  // ============================================================
-  function el(id) { return document.getElementById(id); }
-  function show(id) { const e = el(id); if (e) e.classList.remove("hidden"); }
-  function hide(id) { const e = el(id); if (e) e.classList.add("hidden"); }
+  // ── DOM ───────────────────────────────────────────────────
 
-  function buildCategoryOptions(selectEl, selectedId, cats) {
-    cats = cats || CATEGORIES;
-    selectEl.innerHTML = "";
-    for (const cat of cats) {
-      const opt = document.createElement("option");
-      opt.value = cat.id;
-      opt.textContent = `${cat.icon} ${cat.label}`;
-      if (cat.id === selectedId) opt.selected = true;
-      selectEl.appendChild(opt);
-    }
+  function el(id) { return document.getElementById(id); }
+  function show(id) { el(id)?.classList.remove("hidden"); }
+  function hide(id) { el(id)?.classList.add("hidden"); }
+  function showEl(e) { e?.classList.remove("hidden"); }
+  function hideEl(e) { e?.classList.add("hidden"); }
+
+  // ── Spinner ───────────────────────────────────────────────
+
+  function loading(on) {
+    const s = el("spinner");
+    if (s) s.classList.toggle("hidden", !on);
   }
 
   return {
     CATEGORIES, INCOME_CATEGORIES, MONTHS,
     getCurrentPeriodBase, periodFromBase,
     getCategory, formatPLN, todayISO,
-    toast, el, show, hide, buildCategoryOptions,
+    toast, el, show, hide, showEl, hideEl, loading,
   };
 })();
