@@ -4,8 +4,6 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
   <title>BudgetApp</title>
-
-  <!-- Favicon & PWA icons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico"/>
   <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png"/>
   <link rel="icon" type="image/png" sizes="16x16" href="icon-16.png"/>
@@ -15,16 +13,17 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="apple-mobile-web-app-title" content="BudgetApp"/>
   <link rel="manifest" href="manifest.json"/>
-
   <link rel="stylesheet" href="css/main.css"/>
 </head>
 <body>
 
-<!-- ══════════ LOGIN ══════════ -->
+<!-- ══════════════ LOGIN ══════════════ -->
 <div id="login-screen">
   <div class="lbox">
     <div class="lbox-logo">
-      <div class="lbox-icon"><img src="icon-180.png" style="width:100%;height:100%;border-radius:10px;display:block"/></div>
+      <div class="lbox-icon">
+        <img src="icon-180.png" style="width:100%;height:100%;display:block"/>
+      </div>
       <div class="lbox-name">BudgetApp</div>
     </div>
     <h1>Sign in</h1>
@@ -33,24 +32,28 @@
       <div class="ig">
         <label class="lbl">PIN</label>
         <div class="lpw">
-          <input type="password" id="login-pw" placeholder="Enter PIN…" autocomplete="current-password" inputmode="numeric"/>
-          <button class="lpw-eye" id="toggle-pw" type="button">👁</button>
+          <input type="password" id="login-pw" placeholder="Enter PIN…"
+                 autocomplete="current-password" inputmode="numeric"/>
+          <button class="lpw-eye" id="toggle-pw" type="button" aria-label="Show/hide PIN">👁</button>
         </div>
       </div>
       <div id="login-error" class="lerr hidden"></div>
-      <button class="btn-p" id="login-btn" style="width:100%;padding:14px;font-size:15px">Sign in →</button>
+      <button class="btn-p" id="login-btn">Sign in →</button>
     </div>
   </div>
 </div>
 
 
-<!-- ══════════ APP ══════════ -->
+<!-- ══════════════ APP ══════════════ -->
 <div id="app-screen" class="hidden">
 
+  <!-- Desktop header -->
   <header class="app-hdr">
     <div class="app-hdr-in">
       <div class="logo">
-        <div class="logo-icon"><img src="icon-32.png" style="width:100%;height:100%;border-radius:6px;display:block"/></div>
+        <div class="logo-icon">
+          <img src="icon-32.png" style="width:100%;height:100%;display:block"/>
+        </div>
         <span class="logo-name">BudgetApp</span>
       </div>
       <nav class="nav">
@@ -67,19 +70,34 @@
     </div>
   </header>
 
+  <!-- Mobile top bar -->
+  <div class="mobile-topbar">
+    <div class="mobile-logo">
+      <div class="mobile-logo-icon">
+        <img src="icon-32.png" style="width:100%;height:100%;display:block"/>
+      </div>
+      <span class="mobile-logo-name">BudgetApp</span>
+    </div>
+    <div class="mobile-actions">
+      <button class="btn-g" id="change-pw-btn-mobile" style="font-size:12px;padding:7px 12px">🔑 PIN</button>
+      <button class="btn-logout" id="logout-btn-mobile" title="Sign out">↩</button>
+    </div>
+  </div>
+
+  <!-- Main content -->
   <main class="app-main">
 
-    <!-- Period bar -->
+    <!-- Period bar (dashboard + transactions) -->
     <div class="period-bar" id="period-bar-wrap">
       <div class="period-nav">
-        <button class="pnav-btn" id="prev-period">‹</button>
+        <button class="pnav-btn" id="prev-period" aria-label="Previous period">‹</button>
         <div class="period-mid">
           <div class="period-sub">Billing period</div>
           <div class="period-lbl" id="period-label">…</div>
         </div>
-        <button class="pnav-btn" id="next-period">›</button>
+        <button class="pnav-btn" id="next-period" aria-label="Next period">›</button>
       </div>
-      <span class="dim" id="period-count" style="font-size:13px"></span>
+      <span class="period-count-badge dim" id="period-count"></span>
     </div>
 
     <!-- Summary cards -->
@@ -92,36 +110,41 @@
         <div class="sum-lbl" style="color:#9b92f5">📋 Planned</div>
         <div id="sum-planned-val" class="sum-val mono" style="color:#a89ef8">0.00 PLN</div>
       </div>
-      <div class="sum-card" style="background:var(--rbg);border:1px solid rgba(255,94,94,.15)">
+      <div class="sum-card rc">
         <div class="sum-lbl">↓ Spent</div>
         <div id="sum-actual-val" class="sum-val red mono">0.00 PLN</div>
       </div>
       <div class="sum-card nc" id="sum-balance-card">
-        <div class="sum-lbl">= Balance (this period)</div>
+        <div class="sum-lbl">= Balance</div>
         <div id="sum-balance-val" class="sum-val mono">0.00 PLN</div>
       </div>
     </div>
 
     <!-- Global balance -->
-    <div class="card p-20" style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between">
+    <div class="global-bar" id="global-balance-bar">
       <div>
-        <div class="sum-lbl" style="margin-bottom:6px">💰 Total balance (all periods)</div>
+        <div class="sum-lbl" style="margin-bottom:8px">💰 Total balance · all periods</div>
         <div id="global-balance-val" class="sum-val green mono">0.00 PLN</div>
       </div>
-      <div class="dim" style="font-size:12px;text-align:right">Total income<br>minus total spending</div>
+      <div class="dim" style="font-size:11px;text-align:right;line-height:1.5">All income<br>minus all spending</div>
     </div>
 
 
     <!-- ══ OVERVIEW ══ -->
-    <div id="view-dashboard">
-      <div class="card p-24" style="margin-bottom:16px">
-        <h2 style="font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:16px">Spending by category</h2>
+    <div id="view-dashboard" class="stack">
+
+      <div class="card p24">
+        <div class="sec-hdr">
+          <h2 class="sec-title">Spending by category</h2>
+        </div>
         <div class="cat-grid" id="cat-grid"></div>
       </div>
 
-      <div class="card p-24">
-        <h2 style="font-family:var(--display);font-size:16px;font-weight:700;margin-bottom:16px">Add entry</h2>
-        <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="card p24">
+        <div class="sec-hdr">
+          <h2 class="sec-title">Add entry</h2>
+        </div>
+        <div class="add-form">
 
           <div class="ig">
             <label class="lbl">Entry type</label>
@@ -134,11 +157,11 @@
 
           <div id="form-expense-rows">
             <div class="ig" style="margin-bottom:14px">
-              <label class="lbl">Expense category</label>
+              <label class="lbl">Category</label>
               <div class="cat-pick-grid" id="cat-grid-form"></div>
               <input type="hidden" id="form-selected-cat" value="paliwo"/>
             </div>
-            <div class="ig" style="margin-bottom:0">
+            <div class="ig">
               <label class="lbl">Description</label>
               <input type="text" id="form-desc" placeholder="e.g. Fuel at Shell…"/>
             </div>
@@ -154,42 +177,48 @@
 
           <div class="ig">
             <label class="lbl">Amount (PLN)</label>
-            <input type="number" id="form-amount" min="0" step="0.01" placeholder="0.00" inputmode="decimal"/>
+            <input type="number" id="form-amount" min="0" step="0.01"
+                   placeholder="0.00" inputmode="decimal"/>
           </div>
-          <button class="btn-p" id="add-btn" style="align-self:flex-start;padding:12px 28px">+ Add</button>
+
+          <button class="btn-p" id="add-btn">+ Add</button>
         </div>
       </div>
     </div>
 
 
     <!-- ══ TRANSACTIONS ══ -->
-    <div id="view-transactions" class="hidden">
+    <div id="view-transactions" class="hidden stack">
       <div class="tabs">
         <button class="tab-btn active" data-tab="actual">💸 Actual</button>
         <button class="tab-btn" data-tab="planned">📋 Planned</button>
         <button class="tab-btn" data-tab="income">💵 Income</button>
       </div>
-      <div id="tx-filter-row" style="display:flex;justify-content:flex-end;margin-bottom:14px">
-        <select id="tx-filter" style="width:auto;font-size:13px;padding:7px 12px"></select>
+
+      <div id="tx-filter-row" style="display:flex;justify-content:flex-end">
+        <select id="tx-filter" style="width:auto;font-size:14px;padding:8px 12px"></select>
       </div>
-      <div id="tx-actual-sec"  class="card p-24"><div class="tx-list" id="tx-actual-list"></div></div>
-      <div id="tx-planned-sec" class="hidden card p-24">
-        <div class="dim" style="font-size:13px;margin-bottom:14px">Planned expenses for this period — no specific date, assigned to the whole period.</div>
-        <div class="tx-list" id="tx-planned-list"></div>
+
+      <div id="tx-actual-sec"  class="card p20"><div class="tx-list" id="tx-actual-list"></div></div>
+      <div id="tx-planned-sec" class="hidden">
+        <p class="dim" style="font-size:13px;margin-bottom:12px">
+          Planned expenses for this period — no specific date, assigned to the whole billing period.
+        </p>
+        <div class="card p20"><div class="tx-list" id="tx-planned-list"></div></div>
       </div>
-      <div id="tx-income-sec"  class="hidden card p-24"><div class="tx-list" id="tx-income-list"></div></div>
+      <div id="tx-income-sec"  class="hidden card p20"><div class="tx-list" id="tx-income-list"></div></div>
     </div>
 
 
     <!-- ══ SAVINGS ══ -->
-    <div id="view-savings" class="hidden">
+    <div id="view-savings" class="hidden stack">
       <div class="add-box">
         <div class="add-box-title">🎯 New savings goal</div>
         <div class="g2" style="margin-bottom:10px">
           <div class="ig"><label class="lbl">Goal name</label><input type="text" id="goal-name" placeholder="e.g. New laptop"/></div>
-          <div class="ig"><label class="lbl">Target amount (PLN)</label><input type="number" id="goal-target" min="1" step="1" placeholder="5000"/></div>
+          <div class="ig"><label class="lbl">Target (PLN)</label><input type="number" id="goal-target" min="1" step="1" placeholder="5000" inputmode="decimal"/></div>
         </div>
-        <div class="g2" style="margin-bottom:14px">
+        <div class="form-row" style="margin-bottom:14px">
           <div class="ig"><label class="lbl">Icon (emoji)</label><input type="text" id="goal-icon" placeholder="🎯" maxlength="4"/></div>
           <div class="ig"><label class="lbl">Color</label><input type="color" id="goal-color" value="#6C63FF"/></div>
         </div>
@@ -200,14 +229,14 @@
 
 
     <!-- ══ LONG-TERM ══ -->
-    <div id="view-longterm" class="hidden">
+    <div id="view-longterm" class="hidden stack">
       <div class="add-box">
         <div class="add-box-title">📦 New long-term expense</div>
         <div class="g2" style="margin-bottom:10px">
-          <div class="ig"><label class="lbl">Name</label><input type="text" id="lt-name" placeholder="e.g. Bathroom renovation"/></div>
-          <div class="ig"><label class="lbl">Total budget (PLN)</label><input type="number" id="lt-budget" min="1" step="1" placeholder="10000"/></div>
+          <div class="ig"><label class="lbl">Name</label><input type="text" id="lt-name" placeholder="e.g. Bathroom reno"/></div>
+          <div class="ig"><label class="lbl">Total budget (PLN)</label><input type="number" id="lt-budget" min="1" step="1" placeholder="10000" inputmode="decimal"/></div>
         </div>
-        <div class="g2" style="margin-bottom:14px">
+        <div class="form-row" style="margin-bottom:14px">
           <div class="ig"><label class="lbl">Icon (emoji)</label><input type="text" id="lt-icon" placeholder="📦" maxlength="4"/></div>
           <div class="ig"><label class="lbl">Color</label><input type="color" id="lt-color" value="#F5C542"/></div>
         </div>
@@ -218,25 +247,47 @@
 
 
     <!-- ══ HISTORY ══ -->
-    <div id="view-history" class="hidden">
-      <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:6px">Period history</h2>
-      <p class="dim" style="font-size:13px;margin-bottom:20px">Summary of each billing period.</p>
+    <div id="view-history" class="hidden stack">
+      <div>
+        <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:4px">Period history</h2>
+        <p class="dim" style="font-size:13px;margin-bottom:20px">Summary of each billing period.</p>
+      </div>
       <div id="history-list"></div>
     </div>
 
   </main>
+
+  <!-- ══ BOTTOM NAV (mobile) ══ -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="bnav-btn active" data-view="dashboard">
+      <span class="bnav-icon">📊</span>Overview
+    </button>
+    <button class="bnav-btn" data-view="transactions">
+      <span class="bnav-icon">💳</span>Transactions
+    </button>
+    <button class="bnav-btn" data-view="savings">
+      <span class="bnav-icon">🏦</span>Savings
+    </button>
+    <button class="bnav-btn" data-view="longterm">
+      <span class="bnav-icon">📦</span>Long-term
+    </button>
+    <button class="bnav-btn" data-view="history">
+      <span class="bnav-icon">📅</span>History
+    </button>
+  </nav>
+
 </div>
 
 
 <!-- ══ EDIT MODAL ══ -->
 <div id="edit-modal" class="modal-bg hidden">
-  <div class="card p-24 modal-box">
+  <div class="card modal-box" style="padding:24px">
     <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:20px">✏️ Edit entry</h2>
     <div style="display:flex;flex-direction:column;gap:14px">
       <div class="ig"><label class="lbl">Category</label><select id="edit-category"></select></div>
       <div class="ig"><label class="lbl">Description</label><input type="text" id="edit-desc"/></div>
-      <div class="ig"><label class="lbl">Amount (PLN)</label><input type="number" id="edit-amount" min="0" step="0.01"/></div>
-      <div style="display:flex;gap:10px">
+      <div class="ig"><label class="lbl">Amount (PLN)</label><input type="number" id="edit-amount" min="0" step="0.01" inputmode="decimal"/></div>
+      <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn-p" id="edit-save" style="flex:1">Save</button>
         <button class="btn-g" id="edit-cancel" style="flex:1">Cancel</button>
       </div>
@@ -247,14 +298,14 @@
 
 <!-- ══ CHANGE PIN MODAL ══ -->
 <div id="change-pw-modal" class="modal-bg hidden">
-  <div class="card p-24 modal-box">
+  <div class="card modal-box" style="padding:24px">
     <h2 style="font-family:var(--display);font-size:18px;font-weight:800;margin-bottom:20px">🔑 Change PIN</h2>
     <div style="display:flex;flex-direction:column;gap:14px">
       <div class="ig"><label class="lbl">Current PIN</label><input type="password" id="cpw-old" inputmode="numeric"/></div>
       <div class="ig"><label class="lbl">New PIN (min. 4 digits)</label><input type="password" id="cpw-new" inputmode="numeric"/></div>
       <div class="ig"><label class="lbl">Repeat new PIN</label><input type="password" id="cpw-new2" inputmode="numeric"/></div>
       <p id="cpw-error" class="lerr hidden" style="margin:0"></p>
-      <div style="display:flex;gap:10px">
+      <div style="display:flex;gap:10px;margin-top:4px">
         <button class="btn-p" id="cpw-submit" style="flex:1">Save PIN</button>
         <button class="btn-g" id="cpw-cancel" style="flex:1">Cancel</button>
       </div>
@@ -271,6 +322,7 @@
 <script src="js/app.js"></script>
 <script>
 (async () => {
+  // Toggle PIN visibility
   document.getElementById("toggle-pw").onclick = () => {
     const inp = document.getElementById("login-pw");
     inp.type = inp.type === "password" ? "text" : "password";
@@ -281,7 +333,6 @@
     const err = document.getElementById("login-error");
     err.classList.add("hidden");
     if (!pin) { err.textContent = "Please enter your PIN."; err.classList.remove("hidden"); return; }
-
     document.getElementById("spinner").classList.remove("hidden");
     try {
       const ok = await DB.checkPin(pin);
@@ -297,7 +348,7 @@
         document.getElementById("login-pw").focus();
       }
     } catch(e) {
-      err.textContent = "Connection error. Check your internet connection.";
+      err.textContent = "Connection error. Check your internet.";
       err.classList.remove("hidden");
       console.error(e);
     } finally {

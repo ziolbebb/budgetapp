@@ -20,10 +20,18 @@ const App = (() => {
 
   function setView(v) {
     state.view = v; bust();
+
+    // Sync desktop nav
     document.querySelectorAll(".nav-btn").forEach(b => b.classList.toggle("active", b.dataset.view === v));
-    const showPeriod = ["dashboard","transactions"].includes(v);
+    // Sync bottom nav
+    document.querySelectorAll(".bnav-btn").forEach(b => b.classList.toggle("active", b.dataset.view === v));
+
+    // Show/hide period bar and summary cards only on dashboard + transactions
+    const showPeriod = v === "dashboard" || v === "transactions";
     UI.el("period-bar-wrap")?.classList.toggle("hidden", !showPeriod);
     UI.el("sum-grid-wrap")?.classList.toggle("hidden",   !showPeriod);
+    UI.el("global-balance-bar")?.classList.toggle("hidden", !showPeriod);
+
     renderMain();
   }
 
@@ -361,10 +369,10 @@ const App = (() => {
             <span class="dim" style="font-size:13px">${Math.round(pct)}% of ${UI.formatPLN(g.target)}</span>
           </div>
           <div class="track"><div class="fill" style="width:${pct}%;background:${g.color||"#6C63FF"}"></div></div>
-          <div style="margin-top:14px;display:flex;gap:8px">
-            <input type="number" min="0" step="0.01" placeholder="Deposit amount (PLN)" id="dep-${g.id}" style="font-size:14px"/>
-            <input type="text" placeholder="Note (optional)" id="dep-note-${g.id}" style="font-size:14px"/>
-            <button class="btn-p dep-btn" style="padding:8px 16px;font-size:13px;white-space:nowrap">+ Deposit</button>
+          <div class="inline-form">
+            <input type="number" min="0" step="0.01" placeholder="Deposit amount (PLN)" id="dep-${g.id}" inputmode="decimal"/>
+            <input type="text" placeholder="Note (optional)" id="dep-note-${g.id}"/>
+            <button class="btn-p dep-btn">+ Deposit</button>
           </div>
           ${gDeps.length ? `
           <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
@@ -457,10 +465,10 @@ const App = (() => {
             <span class="dim" style="font-size:13px">${Math.round(pct)}% of ${UI.formatPLN(exp.total_budget)}</span>
           </div>
           <div class="track"><div class="fill" style="width:${pct}%;background:${exp.color||"#F5C542"}"></div></div>
-          <div style="margin-top:14px;display:flex;gap:8px">
-            <input type="number" min="0" step="0.01" placeholder="Amount spent (PLN)" id="pay-${exp.id}" style="font-size:14px"/>
-            <input type="text" placeholder="Note" id="pay-note-${exp.id}" style="font-size:14px"/>
-            <button class="btn-p pay-btn" style="padding:8px 16px;font-size:13px;white-space:nowrap">+ Add</button>
+          <div class="inline-form">
+            <input type="number" min="0" step="0.01" placeholder="Amount spent (PLN)" id="pay-${exp.id}" inputmode="decimal"/>
+            <input type="text" placeholder="Note" id="pay-note-${exp.id}"/>
+            <button class="btn-p pay-btn">+ Add</button>
           </div>
           ${exPays.length ? `
           <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
@@ -550,7 +558,7 @@ const App = (() => {
               <div style="font-family:var(--display);font-weight:700;font-size:15px">${label}</div>
               <span class="badge ${pos?"bg":"br"}">${pos?"✓ positive":"✗ negative"}</span>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+            <div class="hist-grid">
               <div><div class="muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Income</div><div class="mono green" style="font-size:14px;font-weight:600">${UI.formatPLN(income)}</div></div>
               <div><div class="muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Planned</div><div class="mono" style="font-size:14px;font-weight:600;color:#a89ef8">${UI.formatPLN(planned)}</div></div>
               <div><div class="muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Spent</div><div class="mono red" style="font-size:14px;font-weight:600">${UI.formatPLN(actual)}</div></div>
@@ -601,18 +609,33 @@ const App = (() => {
 
   // ── Init ───────────────────────────────────────────────────
 
+  function openChangePw() {
+    ["cpw-old","cpw-new","cpw-new2"].forEach(id => { UI.el(id).value = ""; });
+    UI.el("cpw-error").textContent = "";
+    UI.el("cpw-error").classList.add("hidden");
+    UI.el("change-pw-modal").classList.remove("hidden");
+  }
+
   function init() {
+    // Desktop nav
     document.querySelectorAll(".nav-btn").forEach(btn =>
       btn.addEventListener("click", () => setView(btn.dataset.view)));
-    UI.el("prev-period").onclick   = prevPeriod;
-    UI.el("next-period").onclick   = nextPeriod;
-    UI.el("logout-btn").onclick    = () => { DB.clearSession(); location.reload(); };
-    UI.el("change-pw-btn").onclick = () => {
-      ["cpw-old","cpw-new","cpw-new2"].forEach(id => { UI.el(id).value = ""; });
-      UI.el("cpw-error").textContent = "";
-      UI.el("cpw-error").classList.add("hidden");
-      UI.el("change-pw-modal").classList.remove("hidden");
-    };
+
+    // Bottom nav (mobile)
+    document.querySelectorAll(".bnav-btn").forEach(btn =>
+      btn.addEventListener("click", () => setView(btn.dataset.view)));
+
+    UI.el("prev-period").onclick = prevPeriod;
+    UI.el("next-period").onclick = nextPeriod;
+
+    // Logout — both desktop and mobile buttons
+    const doLogout = () => { DB.clearSession(); location.reload(); };
+    UI.el("logout-btn").onclick        = doLogout;
+    UI.el("logout-btn-mobile").onclick = doLogout;
+
+    // PIN change — both
+    UI.el("change-pw-btn").onclick        = openChangePw;
+    UI.el("change-pw-btn-mobile").onclick = openChangePw;
 
     // Tx filter
     const f = UI.el("tx-filter");
