@@ -84,6 +84,11 @@ const DB = (() => {
   const addDeposit       = (goalId, amount, note)    => post("savings_deposits", { goal_id: goalId, amount, note });
   const deleteDeposit    = (id)                      => del("savings_deposits", `?id=eq.${id}`);
 
+  // ── Custom categories ─────────────────────────────────────
+  const getCustomCategories  = ()                            => get("custom_categories", "?order=sort_order.asc,created_at.asc");
+  const addCustomCategory    = (type, label, icon, color)    => post("custom_categories", { type, label, icon, color });
+  const deleteCustomCategory = (id)                          => del("custom_categories", `?id=eq.${id}`);
+
   // ── Longterm expenses ──────────────────────────────────────
   const getLongtermExpenses  = ()                          => get("longterm_expenses", "?order=created_at.asc");
   const addLongtermExpense   = (name, totalBudget, icon, color) =>
@@ -101,5 +106,6 @@ const DB = (() => {
     getSavingsGoals, addSavingsGoal, deleteSavingsGoal, getAllDeposits, addDeposit, deleteDeposit,
     getLongtermExpenses, addLongtermExpense, deleteLongtermExpense,
     getAllLongtermPayments, addLongtermPayment, deleteLongtermPayment,
+    getCustomCategories, addCustomCategory, deleteCustomCategory,
   };
 })();

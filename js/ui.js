@@ -4,7 +4,7 @@
 
 const UI = (() => {
 
-  const CATEGORIES = [
+  const DEFAULT_CATEGORIES = [
     { id: "paliwo",       label: "Paliwo",       icon: "⛽", color: "#FF8C42" },
     { id: "zabka",        label: "Żabka",         icon: "🐸", color: "#4CAF50" },
     { id: "wakacje",      label: "Wakacje",       icon: "✈️",  color: "#29B6F6" },
@@ -18,12 +18,24 @@ const UI = (() => {
     { id: "inne",         label: "Inne",          icon: "💡", color: "#BDBDBD" },
   ];
 
-  const INCOME_CATEGORIES = [
+  const DEFAULT_INCOME_CATEGORIES = [
     { id: "dominos",  label: "Domino's", icon: "🍕", color: "#E53935" },
     { id: "rodzice",  label: "Rodzice",  icon: "👨‍👩‍👦", color: "#42A5F5" },
     { id: "szycie",   label: "Szycie",   icon: "🧵", color: "#AB47BC" },
     { id: "inne_inc", label: "Inne",     icon: "💰", color: "#BDBDBD" },
   ];
+
+  // Live arrays — merged with custom ones from DB
+  let CATEGORIES        = [...DEFAULT_CATEGORIES];
+  let INCOME_CATEGORIES = [...DEFAULT_INCOME_CATEGORIES];
+
+  // Merge custom DB categories into live arrays
+  function applyCustomCategories(customRows) {
+    const customExp = customRows.filter(c => c.type === "expense");
+    const customInc = customRows.filter(c => c.type === "income");
+    CATEGORIES        = [...DEFAULT_CATEGORIES,        ...customExp.map(c => ({ id: c.id, label: c.label, icon: c.icon, color: c.color, custom: true }))];
+    INCOME_CATEGORIES = [...DEFAULT_INCOME_CATEGORIES, ...customInc.map(c => ({ id: c.id, label: c.label, icon: c.icon, color: c.color, custom: true }))];
+  }
 
   const MONTHS = ["Sty","Lut","Mar","Kwi","Maj","Cze","Lip","Sie","Wrz","Paź","Lis","Gru"];
 
@@ -54,7 +66,7 @@ const UI = (() => {
   function getCategory(id) {
     return CATEGORIES.find(c => c.id === id)
         || INCOME_CATEGORIES.find(c => c.id === id)
-        || CATEGORIES[CATEGORIES.length - 1];
+        || { id, label: id, icon: "💡", color: "#BDBDBD" };
   }
 
   function formatPLN(n) {
@@ -91,7 +103,10 @@ const UI = (() => {
   }
 
   return {
-    CATEGORIES, INCOME_CATEGORIES, MONTHS,
+    get CATEGORIES()        { return CATEGORIES; },
+    get INCOME_CATEGORIES() { return INCOME_CATEGORIES; },
+    DEFAULT_CATEGORIES, DEFAULT_INCOME_CATEGORIES,
+    applyCustomCategories, MONTHS,
     getCurrentPeriodBase, periodFromBase,
     getCategory, formatPLN, todayISO,
     toast, el, show, hide, showEl, hideEl, loading,

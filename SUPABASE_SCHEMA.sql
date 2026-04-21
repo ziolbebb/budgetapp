@@ -100,3 +100,17 @@ create policy "allow_all" on savings_goals     for all to anon using (true) with
 create policy "allow_all" on savings_deposits  for all to anon using (true) with check (true);
 create policy "allow_all" on longterm_expenses for all to anon using (true) with check (true);
 create policy "allow_all" on longterm_payments for all to anon using (true) with check (true);
+
+-- ══ ADD THIS TO YOUR EXISTING SCHEMA (run separately if tables already exist) ══
+-- Custom expense categories
+create table if not exists custom_categories (
+  id         uuid primary key default gen_random_uuid(),
+  type       text not null default 'expense', -- 'expense' | 'income'
+  label      text not null,
+  icon       text not null default '🏷️',
+  color      text not null default '#6C63FF',
+  sort_order int  default 99,
+  created_at timestamptz default now()
+);
+alter table custom_categories enable row level security;
+create policy "allow_all" on custom_categories for all to anon using (true) with check (true);

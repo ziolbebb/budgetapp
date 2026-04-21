@@ -240,6 +240,7 @@ const App = (() => {
     UI.el("edit-amount").value = t.amount;
     const sel = UI.el("edit-category");
     sel.innerHTML = "";
+    // Populate with all expense categories (including custom)
     UI.CATEGORIES.forEach(c => {
       const o = document.createElement("option");
       o.value = c.id; o.textContent = `${c.icon} ${c.label}`;
@@ -250,7 +251,8 @@ const App = (() => {
     UI.el("edit-cancel").onclick = () => modal.classList.add("hidden");
     UI.el("edit-save").onclick = async () => {
       const desc   = UI.el("edit-desc").value.trim();
-      const amount = parseFloat(UI.el("edit-amount").value);
+      const rawAmt = (UI.el("edit-amount").value || "").replace(",", ".");
+      const amount = parseFloat(rawAmt);
       const catId  = UI.el("edit-category").value;
       if (!desc || isNaN(amount) || amount <= 0) { UI.toast("Fill in all fields correctly!", "err"); return; }
       UI.loading(true);
@@ -311,7 +313,7 @@ const App = (() => {
 
   async function submitForm() {
     const subtype = getActiveSubtype();
-    const amount  = parseFloat(UI.el("form-amount").value);
+    const amount  = getAmountValue("form-amount");
     if (isNaN(amount) || amount <= 0) { UI.toast("Enter a valid amount!", "err"); return; }
     UI.loading(true);
     try {
@@ -396,7 +398,8 @@ const App = (() => {
           renderSavings(); UI.toast("Goal deleted", "err");
         };
         card.querySelector(".dep-btn").onclick = async () => {
-          const amt  = parseFloat(document.getElementById(`dep-${g.id}`)?.value);
+          const raw  = document.getElementById(`dep-${g.id}`)?.value || "";
+          const amt  = parseFloat(raw.replace(",", "."));
           const note = document.getElementById(`dep-note-${g.id}`)?.value || "";
           if (isNaN(amt)||amt<=0) { UI.toast("Enter a valid amount!", "err"); return; }
           UI.loading(true); await DB.addDeposit(g.id, amt, note); UI.loading(false);
@@ -417,7 +420,7 @@ const App = (() => {
   function initSavings() {
     UI.el("add-goal-btn").onclick = async () => {
       const name   = UI.el("goal-name").value.trim();
-      const target = parseFloat(UI.el("goal-target").value);
+      const target = parseFloat((UI.el("goal-target").value || "").replace(",", "."));
       const icon   = UI.el("goal-icon").value.trim() || "🎯";
       const color  = UI.el("goal-color").value || "#6C63FF";
       if (!name || isNaN(target) || target <= 0) { UI.toast("Enter name and target amount!", "err"); return; }
@@ -490,7 +493,8 @@ const App = (() => {
           renderLongterm(); UI.toast("Deleted","err");
         };
         card.querySelector(".pay-btn").onclick = async () => {
-          const amt  = parseFloat(document.getElementById(`pay-${exp.id}`)?.value);
+          const raw  = document.getElementById(`pay-${exp.id}`)?.value || "";
+          const amt  = parseFloat(raw.replace(",", "."));
           const note = document.getElementById(`pay-note-${exp.id}`)?.value || "";
           if (isNaN(amt)||amt<=0) { UI.toast("Enter a valid amount!", "err"); return; }
           UI.loading(true); await DB.addLongtermPayment(exp.id, pk(), amt, note); UI.loading(false);
@@ -511,7 +515,7 @@ const App = (() => {
   function initLongterm() {
     UI.el("add-longterm-btn").onclick = async () => {
       const name   = UI.el("lt-name").value.trim();
-      const budget = parseFloat(UI.el("lt-budget").value);
+      const budget = parseFloat((UI.el("lt-budget").value || "").replace(",", "."));
       const icon   = UI.el("lt-icon").value.trim() || "📦";
       const color  = UI.el("lt-color").value || "#F5C542";
       if (!name || isNaN(budget) || budget <= 0) { UI.toast("Enter name and budget!", "err"); return; }
@@ -596,7 +600,7 @@ const App = (() => {
   // ── Main render ────────────────────────────────────────────
 
   async function renderMain() {
-    ["view-dashboard","view-transactions","view-savings","view-longterm","view-history"]
+    ["view-dashboard","view-transactions","view-savings","view-longterm","view-history","view-categories"]
       .forEach(id => UI.el(id)?.classList.add("hidden"));
     UI.el(`view-${state.view}`)?.classList.remove("hidden");
 
@@ -605,6 +609,154 @@ const App = (() => {
     if (state.view === "savings")      await renderSavings();
     if (state.view === "longterm")     await renderLongterm();
     if (state.view === "history")      await renderHistory();
+    if (state.view === "categories")   await renderCategories();
+  }
+
+  // ── Categories management ──────────────────────────────────
+
+  async function renderCategories() {
+    UI.loading(true);
+    try {
+      const custom = await DB.getCustomCategories();
+      UI.applyCustomCategories(custom);
+
+      const expList = UI.el("custom-exp-list");
+      const incList = UI.el("custom-inc-list");
+      expList.innerHTML = "";
+      incList.innerHTML = "";
+
+      const customExp = custom.filter(c => c.type === "expense");
+      const customInc = custom.filter(c => c.type === "income");
+
+      // Default categories (read-only display)
+      const renderDefault = (cats, container) => {
+        cats.forEach(cat => {
+          const row = document.createElement("div");
+          row.className = "cat-manage-row";
+          row.innerHTML = `
+            <div class="cat-manage-info">
+              <div class="cat-manage-icon" style="background:${cat.color}22">${cat.icon}</div>
+              <span class="cat-manage-label">${cat.label}</span>
+            </div>
+            <span class="badge" style="background:rgba(255,255,255,.06);color:var(--muted);font-size:10px">default</span>`;
+          container.appendChild(row);
+        });
+      };
+
+      renderDefault(UI.DEFAULT_CATEGORIES, expList);
+      renderDefault(UI.DEFAULT_INCOME_CATEGORIES, incList);
+
+      // Custom categories (deletable)
+      const renderCustom = (cats, container) => {
+        cats.forEach(cat => {
+          const row = document.createElement("div");
+          row.className = "cat-manage-row";
+          row.innerHTML = `
+            <div class="cat-manage-info">
+              <div class="cat-manage-icon" style="background:${cat.color}22">${cat.icon}</div>
+              <span class="cat-manage-label">${cat.label}</span>
+            </div>
+            <button class="btn-del cat-del" data-id="${cat.id}" title="Delete category">✕</button>`;
+          row.querySelector(".cat-del").onclick = async () => {
+            if (!confirm(`Delete category "${cat.label}"?\nExisting transactions will keep this category ID.`)) return;
+            UI.loading(true);
+            await DB.deleteCustomCategory(cat.id);
+            UI.loading(false);
+            renderCategories();
+            UI.toast("Category deleted", "err");
+          };
+          container.appendChild(row);
+        });
+      };
+
+      if (customExp.length) renderCustom(customExp, expList);
+      if (customInc.length) renderCustom(customInc, incList);
+
+    } finally { UI.loading(false); }
+  }
+
+  function initAddCategory() {
+    // Type toggle inside categories view
+    const btnExp = UI.el("cat-type-expense");
+    const btnInc = UI.el("cat-type-income");
+    const typeInp= UI.el("new-cat-type");
+
+    if (btnExp) {
+      btnExp.onclick = () => {
+        btnExp.classList.add("a-real");    btnExp.classList.remove("a-inc");
+        btnInc.classList.remove("a-real"); btnInc.classList.add("a-inc") && btnInc.classList.remove("a-real");
+        btnInc.classList.remove("a-real");
+        btnInc.className = "type-btn";
+        typeInp.value = "expense";
+      };
+    }
+    if (btnInc) {
+      btnInc.onclick = () => {
+        btnInc.classList.add("a-inc");
+        btnExp.className = "type-btn";
+        typeInp.value = "income";
+      };
+    }
+
+    UI.el("add-cat-btn").onclick = async () => {
+      const type  = UI.el("new-cat-type").value;
+      const label = UI.el("new-cat-label").value.trim();
+      const icon  = UI.el("new-cat-icon").value.trim() || "🏷️";
+      const color = UI.el("new-cat-color").value || "#6C63FF";
+      if (!label) { UI.toast("Enter a category name!", "err"); return; }
+      UI.loading(true);
+      await DB.addCustomCategory(type, label, icon, color);
+      // Refresh custom cats in memory
+      const custom = await DB.getCustomCategories();
+      UI.applyCustomCategories(custom);
+      UI.loading(false);
+      UI.el("new-cat-label").value = "";
+      UI.el("new-cat-icon").value  = "";
+      // Rebuild category grids in the add form
+      buildCategoryGrid("cat-grid-form",     UI.CATEGORIES,        "form-selected-cat");
+      buildCategoryGrid("inc-cat-grid-form", UI.INCOME_CATEGORIES, "form-selected-inc-cat");
+      // Rebuild filter select
+      rebuildTxFilter();
+      renderCategories();
+      UI.toast(`Category added ✓`);
+    };
+  }
+
+  function rebuildTxFilter() {
+    const f = UI.el("tx-filter");
+    if (!f) return;
+    const cur = f.value;
+    f.innerHTML = `<option value="all">All categories</option>`;
+    UI.CATEGORIES.forEach(c => {
+      const o = document.createElement("option");
+      o.value = c.id; o.textContent = `${c.icon} ${c.label}`;
+      if (c.id === cur) o.selected = true;
+      f.appendChild(o);
+    });
+  }
+
+  // ── Amount input helper — allows decimals on mobile ────────
+
+  function initAmountInput(inputId) {
+    const inp = UI.el(inputId);
+    if (!inp) return;
+
+    // On mobile, use text input with pattern to allow decimal comma/dot
+    // This prevents iOS from blocking decimal input on number fields
+    inp.setAttribute("inputmode", "decimal");
+    inp.setAttribute("pattern",   "[0-9]*[.,]?[0-9]{0,2}");
+
+    // Normalize comma to dot on blur/submit
+    inp.addEventListener("blur", () => {
+      const v = inp.value.replace(",", ".");
+      const n = parseFloat(v);
+      if (!isNaN(n) && n > 0) inp.value = n.toString();
+    });
+  }
+
+  function getAmountValue(inputId) {
+    const v = (UI.el(inputId)?.value || "").replace(",", ".");
+    return parseFloat(v);
   }
 
   // ── Init ───────────────────────────────────────────────────
@@ -616,7 +768,13 @@ const App = (() => {
     UI.el("change-pw-modal").classList.remove("hidden");
   }
 
-  function init() {
+  async function init() {
+    // Load custom categories first, then boot
+    try {
+      const custom = await DB.getCustomCategories();
+      UI.applyCustomCategories(custom);
+    } catch(e) { console.warn("Could not load custom categories", e); }
+
     // Desktop nav
     document.querySelectorAll(".nav-btn").forEach(btn =>
       btn.addEventListener("click", () => setView(btn.dataset.view)));
@@ -638,24 +796,20 @@ const App = (() => {
     UI.el("change-pw-btn-mobile").onclick = openChangePw;
 
     // Tx filter
-    const f = UI.el("tx-filter");
-    if (f) {
-      f.innerHTML = `<option value="all">All categories</option>`;
-      UI.CATEGORIES.forEach(c => {
-        const o = document.createElement("option");
-        o.value = c.id; o.textContent = `${c.icon} ${c.label}`;
-        f.appendChild(o);
-      });
-      f.onchange = e => renderActualList(e.target.value);
-    }
+    rebuildTxFilter();
+    UI.el("tx-filter").onchange = e => renderActualList(e.target.value);
 
     document.querySelectorAll(".tab-btn").forEach(btn =>
       btn.addEventListener("click", () => setTxTab(btn.dataset.tab)));
+
+    // Amount inputs — mobile decimal fix
+    ["form-amount", "goal-target", "lt-budget"].forEach(initAmountInput);
 
     initAddForm();
     initChangePinModal();
     initSavings();
     initLongterm();
+    initAddCategory();
     setView("dashboard");
   }
 
