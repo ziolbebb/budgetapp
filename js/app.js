@@ -637,16 +637,20 @@ const App = (() => {
       const incRows = rows.filter(c => c.type === "income");
 
       const renderRow = (cat, container) => {
+        const safeColor = cat.color || "#6C63FF";
         const row = document.createElement("div");
         row.className = "cat-manage-row";
         row.innerHTML = `
           <div class="cat-manage-info">
-            <div class="cat-manage-icon" style="background:${cat.color}22">${cat.icon}</div>
-            <span class="cat-manage-label">${cat.label}</span>
+            <div class="cat-manage-icon" style="background:${safeColor}33;border:1px solid ${safeColor}44">${cat.icon || "🏷️"}</div>
+            <div>
+              <div class="cat-manage-label">${cat.label}</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:1px">${cat.type === "income" ? "💵 Income" : "💸 Expense"}</div>
+            </div>
           </div>
-          <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
-            <button class="btn-edit cat-edit" title="Edit">✏️</button>
-            <button class="btn-del  cat-del"  title="Delete">✕</button>
+          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+            <button class="btn-edit cat-edit" title="Edit category">✏️</button>
+            <button class="btn-del cat-del" title="Delete category">✕</button>
           </div>`;
 
         row.querySelector(".cat-edit").onclick = () => openCatEditModal(cat, () => renderCategories());

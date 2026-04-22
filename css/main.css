@@ -129,9 +129,9 @@ button {
 }
 .btn-g:hover  { border-color: var(--borderh); color: var(--text); }
 .btn-del {
-  background: none;
-  color: var(--muted);
-  font-size: 16px;
+  background: var(--rbg);
+  color: var(--red);
+  font-size: 15px;
   padding: 6px 8px;
   border-radius: 8px;
   line-height: 1;
@@ -140,13 +140,14 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid transparent;
 }
-.btn-del:hover  { color: var(--red);    background: var(--rbg); }
+.btn-del:hover  { border-color: var(--red); transform: scale(1.05); }
 .btn-del:active { transform: scale(.9); }
 .btn-edit {
-  background: none;
-  color: var(--muted);
-  font-size: 16px;
+  background: rgba(108,99,255,.12);
+  color: var(--accent2);
+  font-size: 15px;
   padding: 6px 8px;
   border-radius: 8px;
   min-width: 32px;
@@ -154,8 +155,9 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid transparent;
 }
-.btn-edit:hover  { color: var(--accent2); background: rgba(108,99,255,.12); }
+.btn-edit:hover  { border-color: var(--accent2); transform: scale(1.05); }
 .btn-logout {
   background: transparent;
   color: var(--muted);
@@ -734,13 +736,25 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
-  border-radius: 10px;
+  padding: 10px 8px;
+  border-radius: 12px;
   transition: background .15s;
+  border: 1px solid transparent;
+  gap: 8px;
 }
-.cat-manage-row:hover { background: rgba(255,255,255,.03); }
-.cat-manage-info  { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.cat-manage-icon  { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.cat-manage-row:hover {
+  background: rgba(255,255,255,.04);
+  border-color: var(--border);
+}
+.cat-manage-info  {
+  display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;
+}
+.cat-manage-icon  {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px; flex-shrink: 0;
+}
 .cat-manage-label { font-weight: 600; font-size: 14px; }
 
 .cat-section-title {
