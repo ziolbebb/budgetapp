@@ -114,3 +114,11 @@ create table if not exists custom_categories (
 );
 alter table custom_categories enable row level security;
 create policy "allow_all" on custom_categories for all to anon using (true) with check (true);
+
+-- ══ RUN THIS if custom_categories table already exists (adds missing columns) ══
+-- Nothing needed — table structure is unchanged.
+-- But if you're starting fresh, the full schema above will create it correctly.
+
+-- ══ IMPORTANT: After deploying v6, the app will automatically seed your default
+-- categories into the custom_categories table on first login.
+-- This means ALL categories (including defaults) can now be edited and deleted.

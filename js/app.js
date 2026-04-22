@@ -614,65 +614,99 @@ const App = (() => {
 
   // ── Categories management ──────────────────────────────────
 
+  async function refreshCategories() {
+    const rows = await DB.getCustomCategories();
+    UI.applyCustomCategories(rows);
+    buildCategoryGrid("cat-grid-form",     UI.CATEGORIES,        "form-selected-cat");
+    buildCategoryGrid("inc-cat-grid-form", UI.INCOME_CATEGORIES, "form-selected-inc-cat");
+    rebuildTxFilter();
+    return rows;
+  }
+
   async function renderCategories() {
     UI.loading(true);
     try {
-      const custom = await DB.getCustomCategories();
-      UI.applyCustomCategories(custom);
+      const rows = await refreshCategories();
 
       const expList = UI.el("custom-exp-list");
       const incList = UI.el("custom-inc-list");
       expList.innerHTML = "";
       incList.innerHTML = "";
 
-      const customExp = custom.filter(c => c.type === "expense");
-      const customInc = custom.filter(c => c.type === "income");
+      const expRows = rows.filter(c => c.type === "expense");
+      const incRows = rows.filter(c => c.type === "income");
 
-      // Default categories (read-only display)
-      const renderDefault = (cats, container) => {
-        cats.forEach(cat => {
-          const row = document.createElement("div");
-          row.className = "cat-manage-row";
-          row.innerHTML = `
-            <div class="cat-manage-info">
-              <div class="cat-manage-icon" style="background:${cat.color}22">${cat.icon}</div>
-              <span class="cat-manage-label">${cat.label}</span>
-            </div>
-            <span class="badge" style="background:rgba(255,255,255,.06);color:var(--muted);font-size:10px">default</span>`;
-          container.appendChild(row);
-        });
+      const renderRow = (cat, container) => {
+        const row = document.createElement("div");
+        row.className = "cat-manage-row";
+        row.innerHTML = `
+          <div class="cat-manage-info">
+            <div class="cat-manage-icon" style="background:${cat.color}22">${cat.icon}</div>
+            <span class="cat-manage-label">${cat.label}</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+            <button class="btn-edit cat-edit" title="Edit">✏️</button>
+            <button class="btn-del  cat-del"  title="Delete">✕</button>
+          </div>`;
+
+        row.querySelector(".cat-edit").onclick = () => openCatEditModal(cat, () => renderCategories());
+
+        row.querySelector(".cat-del").onclick = async () => {
+          if (!confirm(`Delete category "${cat.label}"?\n\nExisting transactions using this category will still show the category ID, but the icon and name may appear as unknown.`)) return;
+          UI.loading(true);
+          await DB.deleteCustomCategory(cat.id);
+          UI.loading(false);
+          renderCategories();
+          UI.toast("Category deleted", "err");
+        };
+
+        container.appendChild(row);
       };
 
-      renderDefault(UI.DEFAULT_CATEGORIES, expList);
-      renderDefault(UI.DEFAULT_INCOME_CATEGORIES, incList);
+      if (expRows.length === 0) {
+        expList.innerHTML = `<div class="tx-empty" style="padding:20px 0">No expense categories. Add one above!</div>`;
+      } else {
+        expRows.forEach(c => renderRow(c, expList));
+      }
 
-      // Custom categories (deletable)
-      const renderCustom = (cats, container) => {
-        cats.forEach(cat => {
-          const row = document.createElement("div");
-          row.className = "cat-manage-row";
-          row.innerHTML = `
-            <div class="cat-manage-info">
-              <div class="cat-manage-icon" style="background:${cat.color}22">${cat.icon}</div>
-              <span class="cat-manage-label">${cat.label}</span>
-            </div>
-            <button class="btn-del cat-del" data-id="${cat.id}" title="Delete category">✕</button>`;
-          row.querySelector(".cat-del").onclick = async () => {
-            if (!confirm(`Delete category "${cat.label}"?\nExisting transactions will keep this category ID.`)) return;
-            UI.loading(true);
-            await DB.deleteCustomCategory(cat.id);
-            UI.loading(false);
-            renderCategories();
-            UI.toast("Category deleted", "err");
-          };
-          container.appendChild(row);
-        });
-      };
-
-      if (customExp.length) renderCustom(customExp, expList);
-      if (customInc.length) renderCustom(customInc, incList);
+      if (incRows.length === 0) {
+        incList.innerHTML = `<div class="tx-empty" style="padding:20px 0">No income categories. Add one above!</div>`;
+      } else {
+        incRows.forEach(c => renderRow(c, incList));
+      }
 
     } finally { UI.loading(false); }
+  }
+
+  // ── Category edit modal ────────────────────────────────────
+
+  function openCatEditModal(cat, onSave) {
+    const modal = UI.el("cat-edit-modal");
+    UI.el("cat-edit-label").value = cat.label;
+    UI.el("cat-edit-icon").value  = cat.icon;
+    UI.el("cat-edit-color").value = cat.color;
+    modal.classList.remove("hidden");
+    setTimeout(() => UI.el("cat-edit-label").focus(), 50);
+
+    UI.el("cat-edit-cancel").onclick = () => modal.classList.add("hidden");
+
+    UI.el("cat-edit-save").onclick = async () => {
+      const label = UI.el("cat-edit-label").value.trim();
+      const icon  = UI.el("cat-edit-icon").value.trim() || "🏷️";
+      const color = UI.el("cat-edit-color").value || "#6C63FF";
+      if (!label) { UI.toast("Category name cannot be empty!", "err"); return; }
+      UI.loading(true);
+      await DB.updateCustomCategory(cat.id, { label, icon, color });
+      UI.loading(false);
+      modal.classList.add("hidden");
+      onSave();
+      UI.toast("Category updated ✓");
+    };
+
+    // Allow Enter to save
+    ["cat-edit-label","cat-edit-icon"].forEach(id => {
+      UI.el(id).onkeydown = e => { if (e.key === "Enter") UI.el("cat-edit-save").click(); };
+    });
   }
 
   function initAddCategory() {
@@ -769,11 +803,12 @@ const App = (() => {
   }
 
   async function init() {
-    // Load custom categories first, then boot
+    // Seed default categories if DB is empty, then load all from DB
     try {
-      const custom = await DB.getCustomCategories();
-      UI.applyCustomCategories(custom);
-    } catch(e) { console.warn("Could not load custom categories", e); }
+      await DB.seedDefaultCategories(UI.DEFAULT_CATEGORIES, UI.DEFAULT_INCOME_CATEGORIES);
+      const rows = await DB.getCustomCategories();
+      UI.applyCustomCategories(rows);
+    } catch(e) { console.warn("Could not load/seed categories", e); }
 
     // Desktop nav
     document.querySelectorAll(".nav-btn").forEach(btn =>

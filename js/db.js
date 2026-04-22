@@ -86,8 +86,22 @@ const DB = (() => {
 
   // ── Custom categories ─────────────────────────────────────
   const getCustomCategories  = ()                            => get("custom_categories", "?order=sort_order.asc,created_at.asc");
-  const addCustomCategory    = (type, label, icon, color)    => post("custom_categories", { type, label, icon, color });
+  const addCustomCategory    = (type, label, icon, color, sortOrder) =>
+    post("custom_categories", { type, label, icon, color, sort_order: sortOrder ?? 99 });
+  const updateCustomCategory = (id, fields)                 => patch("custom_categories", `?id=eq.${id}`, fields);
   const deleteCustomCategory = (id)                          => del("custom_categories", `?id=eq.${id}`);
+
+  // Seed default categories if DB is empty (first run)
+  async function seedDefaultCategories(defaultExp, defaultInc) {
+    const existing = await getCustomCategories();
+    if (existing.length > 0) return; // already seeded
+    const all = [
+      ...defaultExp.map((c, i) => ({ type: "expense", label: c.label, icon: c.icon, color: c.color, sort_order: i })),
+      ...defaultInc.map((c, i) => ({ type: "income",  label: c.label, icon: c.icon, color: c.color, sort_order: i })),
+    ];
+    // Insert all at once via individual posts (Supabase anon allows batch via arrays)
+    await req("POST", "custom_categories", all);
+  }
 
   // ── Longterm expenses ──────────────────────────────────────
   const getLongtermExpenses  = ()                          => get("longterm_expenses", "?order=created_at.asc");
@@ -106,6 +120,6 @@ const DB = (() => {
     getSavingsGoals, addSavingsGoal, deleteSavingsGoal, getAllDeposits, addDeposit, deleteDeposit,
     getLongtermExpenses, addLongtermExpense, deleteLongtermExpense,
     getAllLongtermPayments, addLongtermPayment, deleteLongtermPayment,
-    getCustomCategories, addCustomCategory, deleteCustomCategory,
+    getCustomCategories, addCustomCategory, updateCustomCategory, deleteCustomCategory, seedDefaultCategories,
   };
 })();

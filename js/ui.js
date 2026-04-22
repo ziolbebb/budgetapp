@@ -4,6 +4,7 @@
 
 const UI = (() => {
 
+  // Hardcoded fallbacks used ONLY for seeding on first run
   const DEFAULT_CATEGORIES = [
     { id: "paliwo",       label: "Paliwo",       icon: "⛽", color: "#FF8C42" },
     { id: "zabka",        label: "Żabka",         icon: "🐸", color: "#4CAF50" },
@@ -25,16 +26,16 @@ const UI = (() => {
     { id: "inne_inc", label: "Inne",     icon: "💰", color: "#BDBDBD" },
   ];
 
-  // Live arrays — merged with custom ones from DB
+  // Live arrays — always loaded from DB (all categories, including seeded defaults)
   let CATEGORIES        = [...DEFAULT_CATEGORIES];
   let INCOME_CATEGORIES = [...DEFAULT_INCOME_CATEGORIES];
 
-  // Merge custom DB categories into live arrays
-  function applyCustomCategories(customRows) {
-    const customExp = customRows.filter(c => c.type === "expense");
-    const customInc = customRows.filter(c => c.type === "income");
-    CATEGORIES        = [...DEFAULT_CATEGORIES,        ...customExp.map(c => ({ id: c.id, label: c.label, icon: c.icon, color: c.color, custom: true }))];
-    INCOME_CATEGORIES = [...DEFAULT_INCOME_CATEGORIES, ...customInc.map(c => ({ id: c.id, label: c.label, icon: c.icon, color: c.color, custom: true }))];
+  // Replace live arrays entirely from DB rows
+  function applyCustomCategories(dbRows) {
+    const exp = dbRows.filter(c => c.type === "expense");
+    const inc = dbRows.filter(c => c.type === "income");
+    if (exp.length) CATEGORIES        = exp.map(c => ({ id: c.id, label: c.label, icon: c.icon, color: c.color }));
+    if (inc.length) INCOME_CATEGORIES = inc.map(c => ({ id: c.id, label: c.label, icon: c.icon, color: c.color }));
   }
 
   const MONTHS = ["Sty","Lut","Mar","Kwi","Maj","Cze","Lip","Sie","Wrz","Paź","Lis","Gru"];
@@ -66,7 +67,7 @@ const UI = (() => {
   function getCategory(id) {
     return CATEGORIES.find(c => c.id === id)
         || INCOME_CATEGORIES.find(c => c.id === id)
-        || { id, label: id, icon: "💡", color: "#BDBDBD" };
+        || { id, label: id, icon: "🏷️", color: "#BDBDBD" };
   }
 
   function formatPLN(n) {
