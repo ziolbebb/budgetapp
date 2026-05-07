@@ -122,3 +122,6 @@ create policy "allow_all" on custom_categories for all to anon using (true) with
 -- ══ IMPORTANT: After deploying v6, the app will automatically seed your default
 -- categories into the custom_categories table on first login.
 -- This means ALL categories (including defaults) can now be edited and deleted.
+
+-- ══ Run this to add note column to savings_goals (v7 update) ══
+alter table savings_goals add column if not exists note text default '';
